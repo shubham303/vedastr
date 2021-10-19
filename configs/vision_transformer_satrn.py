@@ -17,6 +17,15 @@ norm_cfg = dict(type='BN')
 num_class = len(character) + 2 # Attention based need two more characters: '[G0]' and '[S]'
 num_steps = batch_max_length + 1
 
+dropout = 0.1
+n_e = 9
+n_d = 3
+n_head = 8
+batch_norm = dict(type='BN')
+layer_norm = dict(type='LayerNorm', normalized_shape=hidden_dim)
+
+test_sensitive = False
+test_character = '0123456789abcdefghijklmnopqrstuvwxyz'
 inference = dict(
     transform=[
         dict(type='Sensitive', sensitive=sensitive),
@@ -77,109 +86,116 @@ inference = dict(
                     ),
                 ),
                 dict(
-                    type='FeatureExtractorComponent',
-                    from_layer='rect',
-                    to_layer='cnn_feat',
+                    type="SequenceEncoderComponent",
+                    from_layer="rect",
+                    to_layer="src",
                     arch=dict(
-                        encoder=dict(
-                            backbone=dict(
-                                type='GBackbone',
+                        type="TransformerEncoder",
+                        embedding=dict(
+                            type="PatchEmbedding",
+                            in_channels=3,
+                            patch_height=32,
+                            patch_width=16,
+                            emb_size=hidden_dim,
+                        ),
+                        position_encoder=dict(
+                            type='Adaptive2DPositionEncoder',
+                            in_channels=hidden_dim,
+                            max_h=100,
+                            max_w=100,
+                            dropout=dropout,
+                        ),
+                        encoder_layer=dict(
+                            type='TransformerEncoderLayer2D',
+                            attention=dict(
+                                type='MultiHeadAttention',
+                                in_channels=hidden_dim,
+                                k_channels=hidden_dim // n_head,
+                                v_channels=hidden_dim // n_head,
+                                n_head=n_head,
+                                dropout=dropout,
+                            ),
+                            attention_norm=layer_norm,
+                            feedforward=dict(
+                                type='Feedforward',
                                 layers=[
-                                    dict(type='ConvModule', in_channels=1, out_channels=32, kernel_size=3,
-                                         stride=1, padding=1, norm_cfg=norm_cfg),
-                                    dict(type='ConvModule', in_channels=32, out_channels=64, kernel_size=3,
-                                         stride=1, padding=1, norm_cfg=norm_cfg),  # c0
-                                    dict(type='MaxPool2d', kernel_size=2, stride=2, padding=0),
-                                    dict(type='BasicBlocks', inplanes=64, planes=128, blocks=1,
-                                         stride=1, norm_cfg=norm_cfg),
-                                    dict(type='ConvModule', in_channels=128, out_channels=128, kernel_size=3,
-                                         stride=1, padding=1, norm_cfg=norm_cfg),  # c1
-                                    dict(type='MaxPool2d', kernel_size=2, stride=2, padding=0),
-                                    dict(type='BasicBlocks', inplanes=128, planes=256, blocks=2,
-                                         stride=1, norm_cfg=norm_cfg),
-                                    dict(type='ConvModule', in_channels=256, out_channels=256, kernel_size=3,
-                                         stride=1, padding=1, norm_cfg=norm_cfg),  # c2
-                                    dict(type='MaxPool2d', kernel_size=2, stride=(2, 1), padding=(0, 1)),
-                                    dict(type='BasicBlocks', inplanes=256, planes=512, blocks=5,
-                                         stride=1, norm_cfg=norm_cfg),
-                                    dict(type='ConvModule', in_channels=512, out_channels=512, kernel_size=3,
-                                         stride=1, padding=1, norm_cfg=norm_cfg),
-                                    dict(type='BasicBlocks', inplanes=512, planes=512, blocks=3,
-                                         stride=1, norm_cfg=norm_cfg),  # c3
-                                    dict(type='ConvModule', in_channels=512, out_channels=512, kernel_size=2,
-                                         stride=(2, 1), padding=(0, 1), norm_cfg=norm_cfg),
-                                    dict(type='ConvModule', in_channels=512, out_channels=512, kernel_size=2,
-                                         stride=1, padding=0, norm_cfg=norm_cfg),  # c4
+                                    dict(type='ConvModule', in_channels=hidden_dim, out_channels=hidden_dim * 4,
+                                         kernel_size=3, padding=1,
+                                         bias=True, norm_cfg=None, activation='relu', dropout=dropout),
+                                    dict(type='ConvModule', in_channels=hidden_dim * 4, out_channels=hidden_dim,
+                                         kernel_size=3, padding=1,
+                                         bias=True, norm_cfg=None, activation=None, dropout=dropout),
                                 ],
                             ),
+                            feedforward_norm=layer_norm,
                         ),
-                        collect=dict(type='CollectBlock', from_layer='c4'),
-                    ),
-                ),
-                dict(
-                    type='SequenceEncoderComponent',
-                    from_layer='cnn_feat',
-                    to_layer='rnn_feat',
-                    arch=dict(
-                        type='RNN',
-                        input_pool=dict(type='AdaptiveAvgPool2d', output_size=(1, None)),
-                        layers=[
-                            ('rnn',
-                             dict(type='LSTM', input_size=512, hidden_size=256, bidirectional=True, batch_first=True)),
-                            ('fc', dict(type='Linear', in_features=512, out_features=256)),
-                            ('rnn',
-                             dict(type='LSTM', input_size=256, hidden_size=256, bidirectional=True, batch_first=True)),
-                            ('fc', dict(type='Linear', in_features=512, out_features=256)),
-                        ],
+                        num_layers=n_e,
                     ),
                 ),
             ],
         ),
         head=dict(
-            type='AttHead',
-            num_class=num_class,
+            type='TransformerHead',
+            src_from='src',
             num_steps=num_steps,
-            cell=dict(
-                type='LSTMCell',
-                input_size=256 + num_class,
-                hidden_size=256,
-            ),
-            input_attention_block=dict(
-                type='CellAttentionBlock',
-                feat=dict(
-                    from_layer='rnn_feat',
-                    type='ConvModule',
-                    in_channels=256,
-                    out_channels=256,
-                    kernel_size=1,
-                    bias=False,
-                    activation=None,
+            pad_id=num_class,
+            decoder=dict(
+                type='TransformerDecoder',
+                position_encoder=dict(
+                    type='PositionEncoder1D',
+                    in_channels=hidden_dim,
+                    max_len=100,
+                    dropout=dropout,
                 ),
-                hidden=dict(
-                    type='ConvModule',
-                    in_channels=256,
-                    out_channels=256,
-                    kernel_size=1,
-                    activation=None,
+                decoder_layer=dict(
+                    type='TransformerDecoderLayer1D',
+                    self_attention=dict(
+                        type='MultiHeadAttention',
+                        in_channels=hidden_dim,
+                        k_channels=hidden_dim // n_head,
+                        v_channels=hidden_dim // n_head,
+                        n_head=n_head,
+                        dropout=dropout,
+                    ),
+                    self_attention_norm=layer_norm,
+                    attention=dict(
+                        type='MultiHeadAttention',
+                        in_channels=hidden_dim,
+                        k_channels=hidden_dim // n_head,
+                        v_channels=hidden_dim // n_head,
+                        n_head=n_head,
+                        dropout=dropout,
+                    ),
+                    attention_norm=layer_norm,
+                    feedforward=dict(
+                        type='Feedforward',
+                        layers=[
+                            dict(type='FCModule', in_channels=hidden_dim, out_channels=hidden_dim * 4, bias=True,
+                                 activation='relu', dropout=dropout),
+                            dict(type='FCModule', in_channels=hidden_dim * 4, out_channels=hidden_dim, bias=True,
+                                 activation=None, dropout=dropout),
+                        ],
+                    ),
+                    feedforward_norm=layer_norm,
                 ),
-                fusion_method='add',
-                post=dict(
-                    type='ConvModule',
-                    in_channels=256,
-                    out_channels=1,
-                    kernel_size=1,
-                    bias=False,
-                    activation='tanh',
-                    order=('act', 'conv', 'norm'),
-                ),
-                post_activation='softmax',
+                num_layers=n_d,
             ),
             generator=dict(
                 type='Linear',
-                in_features=256,
+                in_features=hidden_dim,
                 out_features=num_class,
             ),
+            embedding=dict(
+                type='Embedding',
+                num_embeddings=num_class + 1,
+                embedding_dim=hidden_dim,
+                padding_idx=num_class,
+            ),
         ),
+    ),
+    postprocess=dict(
+        sensitive=test_sensitive,
+        character=test_character,
     ),
 )
 

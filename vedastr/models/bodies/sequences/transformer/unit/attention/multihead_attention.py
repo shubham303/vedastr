@@ -53,8 +53,8 @@ class MultiHeadAttention(nn.Module):
 
     def forward(self, q, k, v, mask=None):
         b, q_len, k_len, v_len = q.size(0), q.size(1), k.size(1), v.size(1)
-
-        q = self.q_linear(q).view(b, q_len, self.n_head,
+        q=self.q_linear(q)
+        q = q.view(b, q_len, self.n_head,
                                   self.k_channels).transpose(1, 2)
         k = self.k_linear(k).view(b, k_len, self.n_head,
                                   self.k_channels).transpose(1, 2)

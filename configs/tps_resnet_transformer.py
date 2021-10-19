@@ -6,16 +6,20 @@ samples_per_gpu = 192
 # 1. inference
 size = (32, 100)
 mean, std = 0.5, 0.5
-
+n_head = 8
+n_e=4
+n_d=4
 sensitive = False
 character = 'abcdefghijklmnopqrstuvwxyz0123456789'
 batch_max_length = 25
-
+dropout = 0.1
 fiducial_num = 20
-hidden_dim = 256
+hidden_dim = 512
 norm_cfg = dict(type='BN')
 num_class = len(character) + 2 # Attention based need two more characters: '[G0]' and '[S]'
 num_steps = batch_max_length + 1
+batch_norm = dict(type='BN')
+layer_norm = dict(type='LayerNorm', normalized_shape=hidden_dim)
 
 inference = dict(
     transform=[
@@ -119,65 +123,100 @@ inference = dict(
                 dict(
                     type='SequenceEncoderComponent',
                     from_layer='cnn_feat',
-                    to_layer='rnn_feat',
+                    to_layer='transformer_feat',
                     arch=dict(
-                        type='RNN',
-                        input_pool=dict(type='AdaptiveAvgPool2d', output_size=(1, None)),
-                        layers=[
-                            ('rnn',
-                             dict(type='LSTM', input_size=512, hidden_size=256, bidirectional=True, batch_first=True)),
-                            ('fc', dict(type='Linear', in_features=512, out_features=256)),
-                            ('rnn',
-                             dict(type='LSTM', input_size=256, hidden_size=256, bidirectional=True, batch_first=True)),
-                            ('fc', dict(type='Linear', in_features=512, out_features=256)),
-                        ],
+                        type='TransformerEncoder',
+                        
+                        position_encoder=dict(
+                            type='PositionEncoder1D',
+                            in_channels = hidden_dim,
+                            max_len = batch_max_length+1,
+                            dropout=dropout
+                        ),
+                        encoder_layer = dict(
+                            type='TransformerEncoderLayer1D',
+                            attention=dict(
+                                type='MultiHeadAttention',
+                                in_channels=hidden_dim,
+                                k_channels=hidden_dim // n_head,
+                                v_channels=hidden_dim // n_head,
+                                n_head=n_head,
+                                dropout=dropout,
+                            ),
+                            attention_norm=layer_norm,
+                            feedforward=dict(
+                                type='Feedforward',
+                                    layers=[
+                                        dict(type='FCModule', in_channels=hidden_dim, out_channels=hidden_dim * 4, bias=True,
+                                            activation='relu', dropout=dropout),
+                                        dict(type='FCModule', in_channels=hidden_dim * 4, out_channels=hidden_dim, bias=True,
+                                            activation=None, dropout=dropout),
+                                    ],
+                             ),
+                            feedforward_norm=layer_norm,
+                        ),
+                        num_layers=n_e,
+                      
                     ),
                 ),
             ],
         ),
         head=dict(
-            type='AttHead',
-            num_class=num_class,
+            type='TransformerHead',
+            src_from='transformer_feat',
             num_steps=num_steps,
-            cell=dict(
-                type='LSTMCell',
-                input_size=256 + num_class,
-                hidden_size=256,
-            ),
-            input_attention_block=dict(
-                type='CellAttentionBlock',
-                feat=dict(
-                    from_layer='rnn_feat',
-                    type='ConvModule',
-                    in_channels=256,
-                    out_channels=256,
-                    kernel_size=1,
-                    bias=False,
-                    activation=None,
+            pad_id = num_class,
+            decoder= dict(
+                type="TransformerDecoder",
+                position_encoder=dict(
+                    type='PositionEncoder1D',
+                    in_channels=hidden_dim,
+                    max_len=100,
+                    dropout=dropout,
                 ),
-                hidden=dict(
-                    type='ConvModule',
-                    in_channels=256,
-                    out_channels=256,
-                    kernel_size=1,
-                    activation=None,
+                decoder_layer=dict(
+                    type='TransformerDecoderLayer1D',
+                    self_attention=dict(
+                        type='MultiHeadAttention',
+                        in_channels=hidden_dim,
+                        k_channels=hidden_dim // n_head,
+                        v_channels=hidden_dim // n_head,
+                        n_head=n_head,
+                        dropout=dropout,
+                    ),
+                    self_attention_norm=layer_norm,
+                    attention=dict(
+                        type='MultiHeadAttention',
+                        in_channels=hidden_dim,
+                        k_channels=hidden_dim // n_head,
+                        v_channels=hidden_dim // n_head,
+                        n_head=n_head,
+                        dropout=dropout,
+                    ),
+                    attention_norm=layer_norm,
+                    feedforward=dict(
+                        type='Feedforward',
+                        layers=[
+                            dict(type='FCModule', in_channels=hidden_dim, out_channels=hidden_dim * 4, bias=True,
+                                 activation='relu', dropout=dropout),
+                            dict(type='FCModule', in_channels=hidden_dim * 4, out_channels=hidden_dim, bias=True,
+                                 activation=None, dropout=dropout),
+                        ],
+                    ),
+                    feedforward_norm=layer_norm,
                 ),
-                fusion_method='add',
-                post=dict(
-                    type='ConvModule',
-                    in_channels=256,
-                    out_channels=1,
-                    kernel_size=1,
-                    bias=False,
-                    activation='tanh',
-                    order=('act', 'conv', 'norm'),
-                ),
-                post_activation='softmax',
+                num_layers=n_d,
             ),
             generator=dict(
                 type='Linear',
-                in_features=256,
+                in_features=hidden_dim,
                 out_features=num_class,
+            ),
+            embedding=dict(
+                type='Embedding',
+                num_embeddings=num_class + 1,
+                embedding_dim=hidden_dim,
+                padding_idx=num_class,
             ),
         ),
     ),

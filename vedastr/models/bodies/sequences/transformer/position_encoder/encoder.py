@@ -16,6 +16,13 @@ class PositionEncoder1D(nn.Module):
         self.dropout = nn.Dropout(p=dropout)
 
     def forward(self, x):
+        
+        if len(x.size()) ==4:
+            # dimensions of feature extraction output and transformer decoder don't match.
+            #size of tensor from Feat. extraction is 4 and from transformer decoder is 3.
+            x=x.squeeze(2)
+            # input order (B,E,C,T) -> (B, C,T, E)
+            x = x.permute(0,2,1)
         out = x + self.position_encoder[:, :x.size(1), :]
         out = self.dropout(out)
 

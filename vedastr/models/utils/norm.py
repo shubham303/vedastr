@@ -44,8 +44,9 @@ def build_norm_layer(cfg, num_features, postfix='', layer_only=False):
     requires_grad = cfg_.pop('requires_grad', True)
     if layer_type != 'GN':
         layer = norm_layer(num_features, **cfg_)
-        if layer_type == 'SyncBN':
-            layer._specify_ddp_gpu_num(1)
+        #TODO code commented because torch 1.9 does not have method _specify_ddp_gpu_num
+        #if layer_type == 'SyncBN':
+        #    layer._specify_ddp_gpu_num(1)
     else:
         assert 'num_groups' in cfg_
         layer = norm_layer(num_channels=num_features, **cfg_)

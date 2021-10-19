@@ -360,14 +360,16 @@ test_dataset_params = dict(
     character=character,
 )
 
-data_root = './data/data_lmdb_release/'
-
+#data_root = './data/data_lmdb_release/'
+data_root='/home/shubham/Documents/MTP/datasets/lmdb_datasets/'
 ###############################################################################
 # 3. test
 test_root = data_root + 'evaluation/'
-test_folder_names = ['CUTE80', 'IC03_867', 'IC13_1015', 'IC15_2077',
-                     'IIIT5k_3000', 'SVT', 'SVTP']
+#test_folder_names = ['CUTE80', 'IC03_867', 'IC13_1015', 'IC15_2077',
+#                     'IIIT5k_3000', 'SVT', 'SVTP']
 
+
+test_folder_names = ['SVT']
 test_dataset = [dict(type='LmdbDataset', root=test_root + f_name,
                      **test_dataset_params) for f_name in test_folder_names]
 
