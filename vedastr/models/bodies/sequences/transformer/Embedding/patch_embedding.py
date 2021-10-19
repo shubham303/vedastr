@@ -3,9 +3,13 @@ from einops import einops
 from einops.layers.torch import Rearrange
 from torch import nn
 
+from vedastr.models.bodies.sequences.transformer.Embedding.registry import EMBEDDING
+
 """
 Ref : https://towardsdatascience.com/implementing-visualttransformer-in-pytorch-184f9f16f632
 """
+
+@EMBEDDING.register_module
 class PatchEmbedding(nn.Module):
 	"""
 	this is convolution based patch embedding.
@@ -16,7 +20,7 @@ class PatchEmbedding(nn.Module):
 		super().__init__()
 		self.projection = nn.Sequential(
 			# using a conv layer instead of a linear one -> performance gains
-			nn.Conv2d(in_channels, emb_size, kernel_size=(patch_width,patch_height), stride=patch_width),
+			nn.Conv2d(in_channels, emb_size, kernel_size=(patch_height,patch_width), stride=patch_width),
 			Rearrange('b e (h) (w) -> b (h w) e'),
 		)
 		self.cls_token = nn.Parameter(torch.randn(1,1, emb_size))

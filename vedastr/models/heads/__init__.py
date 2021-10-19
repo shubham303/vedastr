@@ -6,3 +6,4 @@ from .fc_head import FCHead  # noqa 401
 from .head import Head  # noqa 401
 from .multi_head import MultiHead  # noqa 401
 from .transformer_head import TransformerHead  # noqa 401
+from .vision_transformer_fc_head import VisionTransformerFChead

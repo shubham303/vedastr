@@ -4,7 +4,7 @@ root_workdir = 'workdir'
 samples_per_gpu = 192
 ###############################################################################
 # 1. inference
-size = (32, 100)
+size = (32, 256)
 mean, std = 0.5, 0.5
 
 sensitive = False
@@ -42,7 +42,7 @@ inference = dict(
     ),
     model=dict(
         type='GModel',
-        need_text=True,
+        need_text=False,
         body=dict(
             type='GBody',
             pipelines=[
@@ -95,7 +95,7 @@ inference = dict(
                             type="PatchEmbedding",
                             in_channels=1,
                             patch_height=32,
-                            patch_width=16,
+                            patch_width=8,
                             emb_size=hidden_dim,
                         ),
                         position_encoder=dict(
@@ -118,12 +118,12 @@ inference = dict(
                             feedforward=dict(
                                 type='Feedforward',
                                 layers=[
-                                    dict(type='ConvModule', in_channels=hidden_dim, out_channels=hidden_dim * 4,
-                                         kernel_size=3, padding=1,
-                                         bias=True, norm_cfg=None, activation='relu', dropout=dropout),
-                                    dict(type='ConvModule', in_channels=hidden_dim * 4, out_channels=hidden_dim,
-                                         kernel_size=3, padding=1,
-                                         bias=True, norm_cfg=None, activation=None, dropout=dropout),
+                                    dict(type='FCModule', in_channels=hidden_dim, out_channels=hidden_dim * 4,
+                                         bias=True,
+                                         activation='relu', dropout=dropout),
+                                    dict(type='FCModule', in_channels=hidden_dim * 4, out_channels=hidden_dim,
+                                         bias=True,
+                                         activation=None, dropout=dropout),
                                 ],
                             ),
                             feedforward_norm=layer_norm,
@@ -134,62 +134,11 @@ inference = dict(
             ],
         ),
         head=dict(
-            type='TransformerHead',
-            src_from='src',
-            num_steps=num_steps,
-            pad_id=num_class,
-            decoder=dict(
-                type='TransformerDecoder',
-                position_encoder=dict(
-                    type='PositionEncoder1D',
-                    in_channels=hidden_dim,
-                    max_len=100,
-                    dropout=dropout,
-                ),
-                decoder_layer=dict(
-                    type='TransformerDecoderLayer1D',
-                    self_attention=dict(
-                        type='MultiHeadAttention',
-                        in_channels=hidden_dim,
-                        k_channels=hidden_dim // n_head,
-                        v_channels=hidden_dim // n_head,
-                        n_head=n_head,
-                        dropout=dropout,
-                    ),
-                    self_attention_norm=layer_norm,
-                    attention=dict(
-                        type='MultiHeadAttention',
-                        in_channels=hidden_dim,
-                        k_channels=hidden_dim // n_head,
-                        v_channels=hidden_dim // n_head,
-                        n_head=n_head,
-                        dropout=dropout,
-                    ),
-                    attention_norm=layer_norm,
-                    feedforward=dict(
-                        type='Feedforward',
-                        layers=[
-                            dict(type='FCModule', in_channels=hidden_dim, out_channels=hidden_dim * 4, bias=True,
-                                 activation='relu', dropout=dropout),
-                            dict(type='FCModule', in_channels=hidden_dim * 4, out_channels=hidden_dim, bias=True,
-                                 activation=None, dropout=dropout),
-                        ],
-                    ),
-                    feedforward_norm=layer_norm,
-                ),
-                num_layers=n_d,
-            ),
-            generator=dict(
-                type='Linear',
-                in_features=hidden_dim,
-                out_features=num_class,
-            ),
-            embedding=dict(
-                type='Embedding',
-                num_embeddings=num_class + 1,
-                embedding_dim=hidden_dim,
-                padding_idx=num_class,
-            ),
+            type='VisionTransformerFChead',
+            in_channels = hidden_dim,
+            num_class=num_class,
+            from_layer="src",
+            batch_max_length = batch_max_length
         ),
     ),
     postprocess=dict(
@@ -197,7 +146,6 @@ inference = dict(
         character=test_character,
     ),
 )
-
 ###############################################################################
 # 2.common
 

@@ -4,6 +4,5 @@ from .registry import EMBEDDING
 
 def build_embedding_layer(cfg, default_args=None):
 	patch_embedding = build_from_cfg(cfg, EMBEDDING , default_args)
-	#TODO build embedding layer from config.
 	return patch_embedding
 
