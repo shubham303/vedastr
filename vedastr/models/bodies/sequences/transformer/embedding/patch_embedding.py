@@ -3,7 +3,7 @@ from einops import einops
 from einops.layers.torch import Rearrange
 from torch import nn
 
-from vedastr.models.bodies.sequences.transformer.Embedding.registry import EMBEDDING
+from vedastr.models.bodies.sequences.transformer.embedding.registry import EMBEDDING
 
 """
 Ref : https://towardsdatascience.com/implementing-visualttransformer-in-pytorch-184f9f16f632

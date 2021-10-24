@@ -1,31 +1,43 @@
-#Deformable patch transformer. ref : https://arxiv.org/pdf/2107.14467.pdf#cite.pvt
-
 # work directory
+import torch
+
 root_workdir = 'workdir'
 # sample_per_gpu
 samples_per_gpu = 64
 ###############################################################################
 # 1. inference
-size = (32, 100)
+size = (224, 224)  # Note for DPT image size 224*224, but text image in general of form height <<
+# width, ex . 32*224 need to change code according to that.
+
 mean, std = 0.5, 0.5
 
-sensitive = True
-character = '0123456789abcdefghijklmnopq' \
-            'rstuvwxyzABCDEFGHIJKLMNOPQRS' \
-            'TUVWXYZ!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'  # need character
-test_sensitive = False
-test_character = '0123456789abcdefghijklmnopqrstuvwxyz'
+character = '0123456789abcdefghijklmnopqrstuvwxyz'
+sensitive = False
 batch_max_length = 25
 
+test_sensitive = False
+test_character = '0123456789abcdefghijklmnopqrstuvwxyz'
+
+num_class = len(character) + 2  # Attention based need two more characters: '[G0]' and '[S]'
+
 dropout = 0.1
-n_e = 9
-n_d = 3
-hidden_dim = 256
-n_head = 8
-batch_norm = dict(type='BN')
-layer_norm = dict(type='LayerNorm', normalized_shape=hidden_dim)
-num_class = len(character) + 1
-num_steps = batch_max_length + 1
+
+img_size = 224
+patch_sizes = [4, 2, 2, 2]
+embed_dims = [64, 128, 320, 512]
+in_sizes = [img_size // 2 ** (i + 1) for i in range(0, 4)]
+n_heads = [1, 2, 4, 8]
+encoder_layers = [3, 4, 6, 3]
+in_channels = [3 if i == 0 else embed_dims[i - 1] for i in range(4)]
+Depatch = [False, True, True, True]
+mlp_ratios = [8, 8, 4, 4]
+
+
+fiducial_num = 20
+hidden_dim = 512
+norm_cfg = dict(type='BN')
+
+
 
 inference = dict(
 	transform=[
@@ -44,136 +56,101 @@ inference = dict(
 	),
 	model=dict(
 		type='GModel',
-		need_text=True,
+		need_text=False,
 		body=dict(
-			type='GBody',
+			type="GBody",
 			pipelines=[
 				dict(
-					type='FeatureExtractorComponent',
-					from_layer='input',
-					to_layer='cnn_feat',
+					type="SequenceEncoderComponent",
+					from_layer="input",
+					to_layer="src",
 					arch=dict(
-						encoder=dict(
-							backbone=dict(
-								type='GBackbone',
-								layers=[
-									dict(type='ConvModule', in_channels=1, out_channels=int(hidden_dim / 2),
-									     kernel_size=3, stride=1, padding=1, norm_cfg=batch_norm),  # c0
-									dict(type='MaxPool2d', kernel_size=2, stride=2, padding=0),
-									dict(type='ConvModule', in_channels=int(hidden_dim / 2), out_channels=hidden_dim,
-									     kernel_size=3, stride=1, padding=1, norm_cfg=batch_norm),  # c1
-									dict(type='MaxPool2d', kernel_size=2, stride=2, padding=0),  # c2
-								],
-							),
-						),
-						collect=dict(type='CollectBlock', from_layer='c2'),
-					),
-				),
-				dict(
-					type='SequenceEncoderComponent',
-					from_layer='cnn_feat',
-					to_layer='src',
-					arch=dict(
-                        type='TransformerEncoder',
-						position_encoder=dict(
-							type='Adaptive2DPositionEncoder',
-							in_channels=hidden_dim,
-							max_h=100,
-							max_w=100,
-							dropout=dropout,
-						),
-						encoder_layer=dict(
-							type='TransformerEncoderLayer2D',
-							attention=dict(
-								type='MultiHeadAttention',
-								in_channels=hidden_dim,
-								k_channels=hidden_dim // n_head,
-								v_channels=hidden_dim // n_head,
-								n_head=n_head,
-								dropout=dropout,
-							),
-							attention_norm=layer_norm,
-							feedforward=dict(
-								type='Feedforward',
-								layers=[
-									dict(type='ConvModule', in_channels=hidden_dim, out_channels=hidden_dim * 4,
-									     kernel_size=3, padding=1,
-									     bias=True, norm_cfg=None, activation='relu', dropout=dropout),
-									dict(type='ConvModule', in_channels=hidden_dim * 4, out_channels=hidden_dim,
-									     kernel_size=3, padding=1,
-									     bias=True, norm_cfg=None, activation=None, dropout=dropout),
-								],
-							),
-							feedforward_norm=layer_norm,
-						),
-						num_layers=n_e,
-					),
-				),
-			],
+						type="DPT",
+						layers=[
+							dict(
+								type="TransformerEncoder",
+								embedding=dict(
+									type="PatchEmbed",
+									img_size=in_sizes[i],
+									patch_size=patch_sizes[i],
+									in_chans=in_channels[i],
+									embed_dim=embed_dims[i]
+								) if not Depatch[i] else dict(
+									type="Simple_DePatch",
+									box_coder=dict(
+										type="PointwhCoder",
+										input_size=in_sizes[i],
+										patch_count=in_sizes[i] / patch_sizes[i],
+										weights=(1., 1., 1., 1.),
+										pts=3,
+										tanh=True,
+										wh_bias=torch.tensor(5. / 3.).sqrt().log()
+									),
+									img_size=in_sizes[i],
+									patch_size=patch_sizes[i],
+									patch_pixels=3,
+									patch_count=in_sizes[i] // patch_sizes[i],
+									in_chans=in_channels[i],
+									embed_dims=embed_dims[i],
+									another_linear=True,
+									use_GE=True,
+									with_norm=True
+								),
+								position_encoder=dict(
+									type='PositionEncoder1D',
+									in_channels=embed_dims[i],
+									max_len=100,
+									dropout=dropout
+								),
+								encoder_layer=dict(
+									type='TransformerEncoderLayer1D',
+									attention=dict(
+										type='MultiHeadAttention',
+										in_channels=embed_dims[i],
+										k_channels=embed_dims[i] // n_heads[i],
+										v_channels=embed_dims[i] // n_heads[i],
+										n_head=n_heads[i],
+										dropout=dropout,
+									),
+									attention_norm=dict(type='LayerNorm', normalized_shape=embed_dims[i]),
+									feedforward=dict(
+										type='Feedforward',
+										layers=[
+											dict(type='FCModule', in_channels=embed_dims[i],
+											     out_channels=embed_dims[i] *
+											                  mlp_ratios[i],
+											     bias=True,
+											     activation='gelu', dropout=dropout),
+											dict(type='FCModule', in_channels=embed_dims[i] * 4,
+											     out_channels=embed_dims[i],
+											     bias=True,
+											     activation=None, dropout=dropout),
+										],
+									),
+									feedforward_norm=dict(type='LayerNorm', normalized_shape=embed_dims[i]),
+								),
+								num_layers=encoder_layers[i]
+							) for i in range(0, 4)
+						],
+						last_embedding_dim=embed_dims[-1],
+						norm=dict(type='LayerNorm', normalized_shape=embed_dims[-1])
+					)
+				)
+			]
 		),
 		head=dict(
-			type='TransformerHead',
-			src_from='src',
-			num_steps=num_steps,
-			pad_id=num_class,
-			decoder=dict(
-				type='TransformerDecoder',
-				position_encoder=dict(
-					type='PositionEncoder1D',
-					in_channels=hidden_dim,
-					max_len=100,
-					dropout=dropout,
-				),
-				decoder_layer=dict(
-					type='TransformerDecoderLayer1D',
-					self_attention=dict(
-						type='MultiHeadAttention',
-						in_channels=hidden_dim,
-						k_channels=hidden_dim // n_head,
-						v_channels=hidden_dim // n_head,
-						n_head=n_head,
-						dropout=dropout,
-					),
-					self_attention_norm=layer_norm,
-					attention=dict(
-						type='MultiHeadAttention',
-						in_channels=hidden_dim,
-						k_channels=hidden_dim // n_head,
-						v_channels=hidden_dim // n_head,
-						n_head=n_head,
-						dropout=dropout,
-					),
-					attention_norm=layer_norm,
-					feedforward=dict(
-						type='Feedforward',
-						layers=[
-							dict(type='FCModule', in_channels=hidden_dim, out_channels=hidden_dim * 4, bias=True,
-							     activation='relu', dropout=dropout),
-							dict(type='FCModule', in_channels=hidden_dim * 4, out_channels=hidden_dim, bias=True,
-							     activation=None, dropout=dropout),
-						],
-					),
-					feedforward_norm=layer_norm,
-				),
-				num_layers=n_d,
-			),
-			generator=dict(
-				type='Linear',
-				in_features=hidden_dim,
-				out_features=num_class,
-			),
-			embedding=dict(
-				type='Embedding',
-				num_embeddings=num_class + 1,
-				embedding_dim=hidden_dim,
-				padding_idx=num_class,
-			),
+			type='VisionTransformerFChead',
+			in_channels=embed_dims[-1],
+			num_class=num_class,
+			from_layer='src',
+			batch_max_length=batch_max_length
 		),
+		
 	),
 	postprocess=dict(
-		sensitive=test_sensitive,
-		character=test_character,
-	),
+			sensitive=test_sensitive,
+			character=test_character,
+		),
 )
 
 ###############################################################################

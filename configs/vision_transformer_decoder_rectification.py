@@ -1,32 +1,31 @@
-#Deformable patch transformer. ref : https://arxiv.org/pdf/2107.14467.pdf#cite.pvt
-
 # work directory
 root_workdir = 'workdir'
 # sample_per_gpu
-samples_per_gpu = 64
+samples_per_gpu = 192
 ###############################################################################
 # 1. inference
-size = (32, 100)
+size = (32, 256)
 mean, std = 0.5, 0.5
 
-sensitive = True
-character = '0123456789abcdefghijklmnopq' \
-            'rstuvwxyzABCDEFGHIJKLMNOPQRS' \
-            'TUVWXYZ!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'  # need character
-test_sensitive = False
-test_character = '0123456789abcdefghijklmnopqrstuvwxyz'
+sensitive = False
+character = 'abcdefghijklmnopqrstuvwxyz0123456789'
 batch_max_length = 25
+
+fiducial_num = 20
+hidden_dim = 256
+norm_cfg = dict(type='BN')
+num_class = len(character) + 2  # Attention based need two more characters: '[G0]' and '[S]'
+num_steps = batch_max_length + 1
 
 dropout = 0.1
 n_e = 9
 n_d = 3
-hidden_dim = 256
 n_head = 8
 batch_norm = dict(type='BN')
 layer_norm = dict(type='LayerNorm', normalized_shape=hidden_dim)
-num_class = len(character) + 1
-num_steps = batch_max_length + 1
 
+test_sensitive = False
+test_character = '0123456789abcdefghijklmnopqrstuvwxyz'
 inference = dict(
 	transform=[
 		dict(type='Sensitive', sensitive=sensitive),
@@ -40,7 +39,6 @@ inference = dict(
 		type='AttnConverter',
 		character=character,
 		batch_max_length=batch_max_length,
-		go_last=True,
 	),
 	model=dict(
 		type='GModel',
@@ -49,41 +47,65 @@ inference = dict(
 			type='GBody',
 			pipelines=[
 				dict(
-					type='FeatureExtractorComponent',
+					type='RectificatorComponent',
 					from_layer='input',
-					to_layer='cnn_feat',
+					to_layer='rect',
 					arch=dict(
-						encoder=dict(
-							backbone=dict(
-								type='GBackbone',
-								layers=[
-									dict(type='ConvModule', in_channels=1, out_channels=int(hidden_dim / 2),
-									     kernel_size=3, stride=1, padding=1, norm_cfg=batch_norm),  # c0
-									dict(type='MaxPool2d', kernel_size=2, stride=2, padding=0),
-									dict(type='ConvModule', in_channels=int(hidden_dim / 2), out_channels=hidden_dim,
-									     kernel_size=3, stride=1, padding=1, norm_cfg=batch_norm),  # c1
-									dict(type='MaxPool2d', kernel_size=2, stride=2, padding=0),  # c2
-								],
+						type='TPS_STN',
+						F=fiducial_num,
+						input_size=size,
+						output_size=size,
+						stn=dict(
+							feature_extractor=dict(
+								encoder=dict(
+									backbone=dict(
+										type='GBackbone',
+										layers=[
+											dict(type='ConvModule', in_channels=1, out_channels=64,
+											     kernel_size=3, stride=1, padding=1, norm_cfg=norm_cfg),
+											dict(type='MaxPool2d', kernel_size=2, stride=2),
+											dict(type='ConvModule', in_channels=64, out_channels=128,
+											     kernel_size=3, stride=1, padding=1, norm_cfg=norm_cfg),
+											dict(type='MaxPool2d', kernel_size=2, stride=2),
+											dict(type='ConvModule', in_channels=128, out_channels=256,
+											     kernel_size=3, stride=1, padding=1, norm_cfg=norm_cfg),
+											dict(type='MaxPool2d', kernel_size=2, stride=2),
+											dict(type='ConvModule', in_channels=256, out_channels=512,
+											     kernel_size=3, stride=1, padding=1, norm_cfg=norm_cfg),
+										],
+									),
+								),
+								collect=dict(type='CollectBlock', from_layer='c3')
 							),
+							pool=dict(type='AdaptiveAvgPool2d', output_size=1),
+							head=[
+								dict(type='FCModule', in_channels=512, out_channels=256),
+								dict(type='FCModule', in_channels=256, out_channels=fiducial_num * 2, activation=None)
+							],
 						),
-						collect=dict(type='CollectBlock', from_layer='c2'),
 					),
 				),
 				dict(
-					type='SequenceEncoderComponent',
-					from_layer='cnn_feat',
-					to_layer='src',
+					type="SequenceEncoderComponent",
+					from_layer="rect",
+					to_layer="src",
 					arch=dict(
-                        type='TransformerEncoder',
+						type="TransformerEncoder",
+						embedding=dict(
+							type="PatchEmbedding",
+							in_channels=1,
+							patch_height=32,
+							patch_width=8,
+							emb_size=hidden_dim,
+						),
 						position_encoder=dict(
-							type='Adaptive2DPositionEncoder',
+							type='PositionEncoder1D',
 							in_channels=hidden_dim,
-							max_h=100,
-							max_w=100,
+							max_len=100,
 							dropout=dropout,
 						),
 						encoder_layer=dict(
-							type='TransformerEncoderLayer2D',
+							type='TransformerEncoderLayer1D',
 							attention=dict(
 								type='MultiHeadAttention',
 								in_channels=hidden_dim,
@@ -96,12 +118,12 @@ inference = dict(
 							feedforward=dict(
 								type='Feedforward',
 								layers=[
-									dict(type='ConvModule', in_channels=hidden_dim, out_channels=hidden_dim * 4,
-									     kernel_size=3, padding=1,
-									     bias=True, norm_cfg=None, activation='relu', dropout=dropout),
-									dict(type='ConvModule', in_channels=hidden_dim * 4, out_channels=hidden_dim,
-									     kernel_size=3, padding=1,
-									     bias=True, norm_cfg=None, activation=None, dropout=dropout),
+									dict(type='FCModule', in_channels=hidden_dim, out_channels=hidden_dim * 4,
+									     bias=True,
+									     activation='relu', dropout=dropout),
+									dict(type='FCModule', in_channels=hidden_dim * 4, out_channels=hidden_dim,
+									     bias=True,
+									     activation=None, dropout=dropout),
 								],
 							),
 							feedforward_norm=layer_norm,
@@ -175,7 +197,6 @@ inference = dict(
 		character=test_character,
 	),
 )
-
 ###############################################################################
 # 2.common
 
@@ -192,17 +213,17 @@ common = dict(
 	metric=dict(type='Accuracy'),
 	dist_params=dict(backend='nccl'),
 )
-
 ###############################################################################
 dataset_params = dict(
 	batch_max_length=batch_max_length,
 	data_filter=True,
 	character=character,
 )
+
 test_dataset_params = dict(
 	batch_max_length=batch_max_length,
 	data_filter=False,
-	character=test_character,
+	character=character,
 )
 
 # data_root = './data/data_lmdb_release/'
@@ -228,18 +249,11 @@ test = dict(
 		),
 		sampler=dict(type='DefaultSampler', shuffle=False),
 		dataset=test_dataset,
-		transform=[
-			dict(type='Sensitive', sensitive=test_sensitive),
-			dict(type='Filter', need_character=test_character),
-			dict(type='ToGray'),
-			dict(type='Resize', size=size),
-			dict(type='Normalize', mean=mean, std=std),
-			dict(type='ToTensor'),
-		],
+		transform=inference['transform'],
 	),
 	postprocess_cfg=dict(
-		sensitive=test_sensitive,
-		character=test_character,
+		sensitive=sensitive,
+		character=character,
 	),
 )
 
@@ -257,20 +271,20 @@ train_dataset_st = [dict(type='LmdbDataset', root=train_root_st)]
 
 # valid
 valid_root = data_root + 'validation/'
-valid_dataset = dict(type='LmdbDataset', root=valid_root, **test_dataset_params)
+valid_dataset = dict(type='LmdbDataset', root=valid_root, **dataset_params)
 
+# train transforms
 train_transforms = [
 	dict(type='Sensitive', sensitive=sensitive),
 	dict(type='Filter', need_character=character),
 	dict(type='ToGray'),
-	dict(type='ExpandRotate', limit=34, p=0.5),
 	dict(type='Resize', size=size),
 	dict(type='Normalize', mean=mean, std=std),
 	dict(type='ToTensor'),
 ]
 
-max_epochs = 6
-milestones = [2, 4]  # epoch start from 0, so 2 means lr decay at 3 epoch, 4 means lr decay at the end of
+max_iterations = 300000
+milestones = [150000, 250000]
 
 train = dict(
 	data=dict(
@@ -312,16 +326,15 @@ train = dict(
 				shuffle=False,
 			),
 			dataset=valid_dataset,
-			transform=test['data']['transform'],
+			transform=inference['transform'],
 		),
 	),
-	optimizer=dict(type='Adam', lr=3e-4),
+	optimizer=dict(type='Adadelta', lr=1.0, rho=0.95, eps=1e-8),
 	criterion=dict(type='CrossEntropyLoss'),
-	lr_scheduler=dict(type='CosineLR',
-	                  iter_based=True,
-	                  warmup_epochs=0.1,
+	lr_scheduler=dict(type='StepLR',
+	                  milestones=milestones,
 	                  ),
-	max_epochs=max_epochs,
+	max_iterations=max_iterations,
 	log_interval=10,
 	trainval_ratio=2000,
 	snapshot_interval=20000,

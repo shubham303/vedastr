@@ -34,7 +34,7 @@ class MultiHeadAttention(nn.Module):
                  k_channels: int,
                  v_channels: int,
                  n_head: int = 8,
-                 dropout: float = 0.1):
+                 dropout: float = 0.1,):
         super(MultiHeadAttention, self).__init__()
 
         self.in_channels = in_channels
