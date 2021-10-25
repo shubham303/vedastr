@@ -3,17 +3,16 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-__all__ = ["pointCoder", "pointwhCoder"]
 
 from vedastr.models.bodies.sequences.transformer.embedding.unit.registry import BOX_CODER
 
 
 @BOX_CODER.register_module
-class pointCoder(nn.Module):
+class PointCoder(nn.Module):
     def __init__(self, input_size, patch_count, weights=(1., 1.), tanh=True):
         super().__init__()
         self.input_size = input_size
-        self.patch_count = patch_count
+        self.patch_count = int(patch_count)
         self.weights = weights
         self._generate_anchor()
         self.tanh = tanh
@@ -59,7 +58,7 @@ class pointCoder(nn.Module):
         return (self.boxes - self.anchor) * self.input_size
 
 @BOX_CODER.register_module
-class pointwhCoder(pointCoder):
+class PointwhCoder(PointCoder):
     def __init__(self, input_size, patch_count, weights=(1., 1.), pts=1, tanh=True, wh_bias=None):
         super().__init__(input_size=input_size, patch_count=patch_count, weights=weights, tanh=tanh)
         self.patch_pixel = pts

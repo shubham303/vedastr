@@ -1,5 +1,6 @@
 import logging
 
+import torch
 import torch.nn as nn
 
 from vedastr.models.bodies.sequences.transformer.position_encoder import build_position_encoder
@@ -18,7 +19,8 @@ class TransformerEncoder(nn.Module):
 	             encoder_layer: dict,
 	             num_layers: int,
 	             position_encoder: dict = None,
-	             embedding: dict = None):
+	             embedding: dict = None,
+	             has_cls_token = False):
 		super(TransformerEncoder, self).__init__()
 		
 		if position_encoder is not None:
@@ -30,6 +32,9 @@ class TransformerEncoder(nn.Module):
 		self.layers = nn.ModuleList(
 			[build_encoder_layer(encoder_layer) for _ in range(num_layers)])
 		
+		self.has_cls_token=has_cls_token
+		if self.has_cls_token:
+			self.cls_token = nn.Parameter(torch.zeros(1, 1, self.embedding.embed_dim))
 		logger.info('TransformerEncoder init weights')
 		init_weights(self.modules())
 	
@@ -43,8 +48,13 @@ class TransformerEncoder(nn.Module):
 	
 	def forward(self, src, src_mask=None):
 		if self.with_embedding_layer:
-			src = self.embedding(src)
+			src,_ = self.embedding(src)
 		
+		if self.has_cls_token:
+			B = src.shape[0]
+			cls_tokens = self.cls_token.expand(B, -1, -1)
+			src = torch.cat((cls_tokens, src), dim=1)
+			
 		if self.with_position_encoder:
 			src = self.pos_encoder(src)
 		

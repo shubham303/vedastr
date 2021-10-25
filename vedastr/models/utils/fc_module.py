@@ -31,7 +31,7 @@ class FCModule(nn.Module):
         # build activation layer
         if self.with_activatation:
             # TODO: introduce `activation` and supports more activation layers
-            if self.activation not in ['relu', 'tanh', 'sigmoid']:
+            if self.activation not in ['relu', 'tanh', 'sigmoid', 'gelu']:
                 raise ValueError('{} is currently not supported.'.format(
                     self.activation))
             if self.activation == 'relu':
@@ -40,6 +40,8 @@ class FCModule(nn.Module):
                 self.activate = nn.Tanh()
             elif self.activation == 'sigmoid':
                 self.activate = nn.Sigmoid()
+            elif self.activation== 'gelu':
+                self.activate = nn.GELU()
 
         if self.with_dropout:
             self.dropout = nn.Dropout(p=dropout)

@@ -3,7 +3,7 @@ import torch
 
 root_workdir = 'workdir'
 # sample_per_gpu
-samples_per_gpu = 64
+samples_per_gpu = 16
 ###############################################################################
 # 1. inference
 size = (224, 224)  # Note for DPT image size 224*224, but text image in general of form height <<
@@ -25,7 +25,7 @@ dropout = 0.1
 img_size = 224
 patch_sizes = [4, 2, 2, 2]
 embed_dims = [64, 128, 320, 512]
-in_sizes = [img_size // 2 ** (i + 1) for i in range(0, 4)]
+in_sizes = [img_size // 2 ** (i + 1) if i> 0 else img_size for i in range(0, 4)]
 n_heads = [1, 2, 4, 8]
 encoder_layers = [3, 4, 6, 3]
 in_channels = [3 if i == 0 else embed_dims[i - 1] for i in range(4)]
@@ -38,15 +38,11 @@ hidden_dim = 512
 norm_cfg = dict(type='BN')
 
 
-
 inference = dict(
 	transform=[
 		dict(type='Sensitive', sensitive=sensitive),
 		dict(type='Filter', need_character=character),
-		dict(type='ToGray'),
-		dict(type='Resize', size=size),
-		dict(type='Normalize', mean=mean, std=std),
-		dict(type='ToTensor'),
+		dict(type='Resize', size=size)
 	],
 	converter=dict(
 		type='AttnConverter',
@@ -70,7 +66,7 @@ inference = dict(
 							dict(
 								type="TransformerEncoder",
 								embedding=dict(
-									type="PatchEmbed",
+									type="VannilaPatchEmbed",
 									img_size=in_sizes[i],
 									patch_size=patch_sizes[i],
 									in_chans=in_channels[i],
@@ -86,12 +82,13 @@ inference = dict(
 										tanh=True,
 										wh_bias=torch.tensor(5. / 3.).sqrt().log()
 									),
+									show_dim=4,
 									img_size=in_sizes[i],
 									patch_size=patch_sizes[i],
-									patch_pixels=3,
-									patch_count=in_sizes[i] // patch_sizes[i],
+									patch_pixel=3,
+									patch_count=int(in_sizes[i] // patch_sizes[i]),
 									in_chans=in_channels[i],
-									embed_dims=embed_dims[i],
+									embed_dim=embed_dims[i],
 									another_linear=True,
 									use_GE=True,
 									with_norm=True
@@ -99,7 +96,8 @@ inference = dict(
 								position_encoder=dict(
 									type='PositionEncoder1D',
 									in_channels=embed_dims[i],
-									max_len=100,
+									max_len=int(in_sizes[i] // patch_sizes[i])**2,   # num of patchses =
+									# patch_count*patch_count
 									dropout=dropout
 								),
 								encoder_layer=dict(
@@ -121,7 +119,7 @@ inference = dict(
 											                  mlp_ratios[i],
 											     bias=True,
 											     activation='gelu', dropout=dropout),
-											dict(type='FCModule', in_channels=embed_dims[i] * 4,
+											dict(type='FCModule', in_channels=embed_dims[i] *  mlp_ratios[i],
 											     out_channels=embed_dims[i],
 											     bias=True,
 											     activation=None, dropout=dropout),
@@ -129,10 +127,11 @@ inference = dict(
 									),
 									feedforward_norm=dict(type='LayerNorm', normalized_shape=embed_dims[i]),
 								),
-								num_layers=encoder_layers[i]
+								num_layers=encoder_layers[i],
+								has_cls_token= True if i==4 else False
 							) for i in range(0, 4)
 						],
-						last_embedding_dim=embed_dims[-1],
+						
 						norm=dict(type='LayerNorm', normalized_shape=embed_dims[-1])
 					)
 				)
@@ -208,7 +207,7 @@ test = dict(
 		transform=[
 			dict(type='Sensitive', sensitive=test_sensitive),
 			dict(type='Filter', need_character=test_character),
-			dict(type='ToGray'),
+			#dict(type='ToGray'),
 			dict(type='Resize', size=size),
 			dict(type='Normalize', mean=mean, std=std),
 			dict(type='ToTensor'),
@@ -239,7 +238,7 @@ valid_dataset = dict(type='LmdbDataset', root=valid_root, **test_dataset_params)
 train_transforms = [
 	dict(type='Sensitive', sensitive=sensitive),
 	dict(type='Filter', need_character=character),
-	dict(type='ToGray'),
+	#dict(type='ToGray'),
 	dict(type='ExpandRotate', limit=34, p=0.5),
 	dict(type='Resize', size=size),
 	dict(type='Normalize', mean=mean, std=std),
@@ -300,7 +299,7 @@ train = dict(
 	                  ),
 	max_epochs=max_epochs,
 	log_interval=10,
-	trainval_ratio=2000,
+	trainval_ratio=200,
 	snapshot_interval=20000,
 	save_best=True,
 	resume=None,
