@@ -1,4 +1,10 @@
-#Deformable patch transformer. ref : https://arxiv.org/pdf/2107.14467.pdf#cite.pvt
+#language specific changes:
+character = 'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ।॥०१२३४५६७८९%/?:,.-'
+test_sensitive = False
+test_character = 'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ।॥०१२३४५६७८९%/?:,.-'
+batch_max_length = 35
+test_folder_names = ['SVT']
+data_root = '/usr/datasets/synthetic_text_dataset/lmdb_dataset_Hindi/hindi'
 
 # work directory
 root_workdir = 'workdir'
@@ -10,12 +16,6 @@ size = (32, 100)
 mean, std = 0.5, 0.5
 
 sensitive = True
-character = '0123456789abcdefghijklmnopq' \
-            'rstuvwxyzABCDEFGHIJKLMNOPQRS' \
-            'TUVWXYZ!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'  # need character
-test_sensitive = False
-test_character = '0123456789abcdefghijklmnopqrstuvwxyz'
-batch_max_length = 25
 
 dropout = 0.1
 n_e = 9
@@ -206,7 +206,7 @@ test_dataset_params = dict(
 )
 
 # data_root = './data/data_lmdb_release/'
-data_root = '/home/shubham/Documents/MTP/datasets/lmdb_datasets/'
+data_root = '/usr/datasets/synthetic_text_dataset/lmdb_dataset_Hindi/hindi'
 ###############################################################################
 # 3. test
 test_root = data_root + 'evaluation/'
@@ -214,7 +214,6 @@ test_root = data_root + 'evaluation/'
 #                     'IIIT5k_3000', 'SVT', 'SVTP']
 
 
-test_folder_names = ['SVT']
 test_dataset = [dict(type='LmdbDataset', root=test_root + f_name,
                      **test_dataset_params) for f_name in test_folder_names]
 
