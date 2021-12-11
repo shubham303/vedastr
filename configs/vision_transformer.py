@@ -1,5 +1,4 @@
 # work directory
-root_workdir = 'workdir'
 # sample_per_gpu
 samples_per_gpu = 192
 ###############################################################################
