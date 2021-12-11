@@ -4,13 +4,13 @@ test_sensitive = False
 test_character = 'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ।॥०१२३४५६७८९'
 batch_max_length = 35
 test_folder_names = ['IIIT']  ###
-data_root = '/usr/datasets/synthetic_text_dataset/lmdb_dataset_Hindi/hindi'
+data_root = '/usr/datasets/synthetic_text_dataset/lmdb_dataset_Hindi/hindi/'
 # language specific chanage end here.
 
 # work directory
 root_workdir = 'workdir'
 # sample_per_gpu
-samples_per_gpu = 256
+samples_per_gpu = 64
 ###############################################################################
 # 1. inference
 size = (32, 100)
@@ -197,7 +197,7 @@ common = dict(
 ###############################################################################
 dataset_params = dict(
 	batch_max_length=batch_max_length,
-	data_filter=True,
+	data_filter=False,
 	character=character,
 )
 test_dataset_params = dict(

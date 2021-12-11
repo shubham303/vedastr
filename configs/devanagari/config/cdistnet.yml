@@ -1,0 +1,106 @@
+TrainReader:
+  dataloader: dataset,BatchBalancedDataset
+  select_data: 'MJ-ST'
+  batch_ratio: '0.5-0.5'
+  total_data_usage_ratio: 1.0
+  padding: True
+  augment: False
+  batch_size: 256
+  shuffle: True
+  num_workers: 8
+  lmdb_sets_dir: 
+
+EvalReader:
+  dataloader: dataset,evaldataloader
+  select_data: '/'
+  batch_size: 256
+  padding: True
+  shuffle: True
+  num_workers: 8
+  lmdb_sets_dir:
+
+TestReader:
+  dataloader: dataset,evaldataloader
+  select_data: '/'
+  batch_size: 2
+  padding: True
+  shuffle: True
+  num_workers: 0
+  lmdb_sets_dir: 
+
+Global:
+  algorithm: CDistNet
+  is_train: True
+  use_gpu: True
+  gpu_num: '0'
+  device: cuda:0
+  num_iters: 800000
+  highest_acc_save_type: False
+  data_filtering_off: False
+  resumed_optimizer: False
+  batch_max_length: 35
+  print_batch_step: 10
+  save_model_dir: "workdir/"
+  eval_batch_step: 2000
+  image_shape: [1, 32, 128]
+  character_type: ch
+  padding_idx: 1
+  use_space_char: false
+  sensitive: True
+  character_dict_path: ./dict/dic_62.txt
+  seed: 1234
+  pretrain_weights:
+  save_inference_dir:
+  infer_img:
+
+Architecture:
+  function: model.cdistnet,CDistNet
+
+VisualModule:
+  layers: [3, 4, 6, 6, 3]
+  n_layer: 3
+  d_model: 512
+  d_inner: 1024
+  n_head: 8
+  d_k: 64
+  d_v: 64
+  dropout: 0
+
+PositionalEmbedding:
+  d_onehot: 512
+  d_hid: 512
+  n_position: 200
+
+SemanticEmbedding:
+  d_model: 512
+  rnn_layers: 2
+  rnn_dropout: 0
+  d_k: 64
+  attn_dropout: 0
+
+MDCDP:
+  n_layer_sae: 1
+  d_model_sae: 512
+  d_inner_sae: 1024
+  n_head_sae: 8
+  d_k_sae: 64
+  d_v_sae: 64
+  n_layer: 3
+  d_model: 512
+  d_inner: 512
+  n_head: 8
+  d_k: 64
+  d_v: 64
+  dropout: 0
+
+Loss:
+  function: loss,AttnLoss
+  blank_idx: 0
+
+Optimizer:
+  function: adam
+  base_lr: 0.001
+  momentum: 0.9
+  weight_decay: 1.0e-4
+  lr_decay_epoch: 10
+  max_epoch: 1000

@@ -3,7 +3,7 @@ character = 'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔक�
 test_sensitive = False
 test_character = 'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ।॥०१२३४५६७८९%/?:,.-'
 batch_max_length = 35
-test_folder_names = ['SVT']
+test_folder_names = ['IIIT']  ###
 data_root = '/usr/datasets/synthetic_text_dataset/lmdb_dataset_Hindi/hindi/'
 
 # work directory
@@ -24,8 +24,7 @@ hidden_dim = 256
 n_head = 8
 batch_norm = dict(type='BN')
 layer_norm = dict(type='LayerNorm', normalized_shape=hidden_dim)
-num_class = len(character) + 1
-num_steps = batch_max_length + 1
+num_class = len(character) + 2
 
 inference = dict(
 	transform=[
@@ -43,132 +42,10 @@ inference = dict(
 		go_last=True,
 	),
 	model=dict(
-		type='GModel',
-		need_text=True,
-		body=dict(
-			type='GBody',
-			pipelines=[
-				dict(
-					type='FeatureExtractorComponent',
-					from_layer='input',
-					to_layer='cnn_feat',
-					arch=dict(
-						encoder=dict(
-							backbone=dict(
-								type='GBackbone',
-								layers=[
-									dict(type='ConvModule', in_channels=1, out_channels=int(hidden_dim / 2),
-									     kernel_size=3, stride=1, padding=1, norm_cfg=batch_norm),  # c0
-									dict(type='MaxPool2d', kernel_size=2, stride=2, padding=0),
-									dict(type='ConvModule', in_channels=int(hidden_dim / 2), out_channels=hidden_dim,
-									     kernel_size=3, stride=1, padding=1, norm_cfg=batch_norm),  # c1
-									dict(type='MaxPool2d', kernel_size=2, stride=2, padding=0),  # c2
-								],
-							),
-						),
-						collect=dict(type='CollectBlock', from_layer='c2'),
-					),
-				),
-				dict(
-					type='SequenceEncoderComponent',
-					from_layer='cnn_feat',
-					to_layer='src',
-					arch=dict(
-                        type='TransformerEncoder',
-						position_encoder=dict(
-							type='Adaptive2DPositionEncoder',
-							in_channels=hidden_dim,
-							max_h=100,
-							max_w=100,
-							dropout=dropout,
-						),
-						encoder_layer=dict(
-							type='TransformerEncoderLayer2D',
-							attention=dict(
-								type='MultiHeadAttention',
-								in_channels=hidden_dim,
-								k_channels=hidden_dim // n_head,
-								v_channels=hidden_dim // n_head,
-								n_head=n_head,
-								dropout=dropout,
-							),
-							attention_norm=layer_norm,
-							feedforward=dict(
-								type='Feedforward',
-								layers=[
-									dict(type='ConvModule', in_channels=hidden_dim, out_channels=hidden_dim * 4,
-									     kernel_size=3, padding=1,
-									     bias=True, norm_cfg=None, activation='relu', dropout=dropout),
-									dict(type='ConvModule', in_channels=hidden_dim * 4, out_channels=hidden_dim,
-									     kernel_size=3, padding=1,
-									     bias=True, norm_cfg=None, activation=None, dropout=dropout),
-								],
-							),
-							feedforward_norm=layer_norm,
-						),
-						num_layers=n_e,
-					),
-				),
-			],
-		),
-		head=dict(
-			type='TransformerHead',
-			src_from='src',
-			num_steps=num_steps,
-			pad_id=num_class,
-			decoder=dict(
-				type='TransformerDecoder',
-				position_encoder=dict(
-					type='PositionEncoder1D',
-					in_channels=hidden_dim,
-					max_len=100,
-					dropout=dropout,
-				),
-				decoder_layer=dict(
-					type='TransformerDecoderLayer1D',
-					self_attention=dict(
-						type='MultiHeadAttention',
-						in_channels=hidden_dim,
-						k_channels=hidden_dim // n_head,
-						v_channels=hidden_dim // n_head,
-						n_head=n_head,
-						dropout=dropout,
-					),
-					self_attention_norm=layer_norm,
-					attention=dict(
-						type='MultiHeadAttention',
-						in_channels=hidden_dim,
-						k_channels=hidden_dim // n_head,
-						v_channels=hidden_dim // n_head,
-						n_head=n_head,
-						dropout=dropout,
-					),
-					attention_norm=layer_norm,
-					feedforward=dict(
-						type='Feedforward',
-						layers=[
-							dict(type='FCModule', in_channels=hidden_dim, out_channels=hidden_dim * 4, bias=True,
-							     activation='relu', dropout=dropout),
-							dict(type='FCModule', in_channels=hidden_dim * 4, out_channels=hidden_dim, bias=True,
-							     activation=None, dropout=dropout),
-						],
-					),
-					feedforward_norm=layer_norm,
-				),
-				num_layers=n_d,
-			),
-			generator=dict(
-				type='Linear',
-				in_features=hidden_dim,
-				out_features=num_class,
-			),
-			embedding=dict(
-				type='Embedding',
-				num_embeddings=num_class + 1,
-				embedding_dim=hidden_dim,
-				padding_idx=num_class,
-			),
-		),
+		type='Cdisnet',
+		flags="/home/shubham/Documents/MTP/text-recognition-models/vedastr/configs/devanagari/config/cdistnet.yml",
+		num_class = len(character)+2,
+		need_text=True
 	),
 	postprocess=dict(
 		sensitive=test_sensitive,
@@ -322,7 +199,7 @@ train = dict(
 	max_epochs=max_epochs,
 	log_interval=10,
 	trainval_ratio=2000,
-	snapshot_interval=5000,
+	snapshot_interval=20000,
 	save_best=True,
 	resume=None,
 )
