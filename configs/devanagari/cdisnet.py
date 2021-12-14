@@ -1,10 +1,16 @@
 #language specific changes:
+#TODO delete repeated characters. k kh g....   . during testing if those characters appear just change them to
+# similar character from both predicted and ground truth label only during testing.
+
+#TODO dont consider special characters to compute test accuracy./ remove special chars from predicted and ground
+# truth label only during testing.
+
 character = 'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ।॥०१२३४५६७८९%/?:,.-'
 test_sensitive = False
 test_character = 'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ।॥०१२३४५६७८९%/?:,.-'
 batch_max_length = 35
 test_folder_names = ['IIIT']  ###
-data_root = '/usr/datasets/synthetic_text_dataset/lmdb_dataset_Hindi/hindi/'
+data_root ='/usr/datasets/synthetic_text_dataset/lmdb_dataset_Hindi/hindi/'
 
 # work directory
 root_workdir = 'workdir'
@@ -138,7 +144,6 @@ train_transforms = [
 	dict(type='Sensitive', sensitive=sensitive),
 	dict(type='Filter', need_character=character),
 	dict(type='ToGray'),
-	dict(type='ExpandRotate', limit=34, p=0.5),
 	dict(type='Resize', size=size),
 	dict(type='Normalize', mean=mean, std=std),
 	dict(type='ToTensor'),
@@ -198,8 +203,10 @@ train = dict(
 	                  ),
 	max_epochs=max_epochs,
 	log_interval=10,
-	trainval_ratio=2000,
+	trainval_ratio=8000,
 	snapshot_interval=20000,
 	save_best=True,
-	resume=None,
+	#resume=dict(checkpoint = '/home/shubham/Documents/MTP/text-recognition-models/vedastr/tools/workdir/cdisnet
+	# /iter20000.pth'),
+	resume=None
 )

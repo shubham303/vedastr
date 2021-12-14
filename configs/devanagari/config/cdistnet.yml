@@ -44,7 +44,7 @@ Global:
   eval_batch_step: 2000
   image_shape: [1, 32, 128]
   character_type: ch
-  padding_idx: 1
+  padding_idx: 120    #TODO change this pad_id
   use_space_char: false
   sensitive: True
   character_dict_path: ./dict/dic_62.txt

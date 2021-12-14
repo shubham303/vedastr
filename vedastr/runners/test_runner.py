@@ -27,7 +27,7 @@ class TestRunner(InferenceRunner):
             if self.use_gpu:
                 img = img.cuda()
                 label_input = label_input.cuda()
-
+    
             if self.need_text:
                 pred = self.model((img, label_input))
             else:

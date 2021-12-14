@@ -41,15 +41,17 @@ class SemanticEmbedding(nn.Module):
         self.linear = nn.Linear(d_model, num_classes)
         self.max_seq_len = max_seq_len + 1
         self.padding_idx = padding_idx
-
+    
+    
     def _generate_mask(self, query, key):
-        pad_mask = (query != self.padding_idx).unsqueeze(2)
+        pad_mask = (query == self.padding_idx).unsqueeze(2)
+        pad_mask[:,0,:] = True
         query_length = query.size(1)
         key_length = key.size(1)
-        sub_mask = torch.tril(
-            torch.ones((query_length, key_length), dtype=torch.bool)
+        sub_mask = torch.triu(
+            torch.ones((query_length, key_length), dtype=torch.bool), diagonal = 1
         ).to(device)
-        target_mask = pad_mask & sub_mask
+        target_mask = (pad_mask | sub_mask)
         return target_mask
 
     def forward(self, enc_feats, input_char):

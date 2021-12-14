@@ -2,6 +2,7 @@
 
 import logging
 
+import cv2
 import lmdb
 import numpy as np
 import six

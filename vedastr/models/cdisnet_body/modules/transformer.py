@@ -38,8 +38,10 @@ class ScaledDotProductAttention(nn.Module):
     def forward(self, q, k, v, mask=None):
         attn = torch.bmm(q, k.transpose(1, 2))
         attn = attn / self.temperature
+
         if mask is not None:
-            attn = attn.masked_fill(mask, -1e9)
+            attn = attn.masked_fill(mask=mask, value=-1e9)
+            
         attn = self.softmax(attn)     
         attn = self.dropout(attn)
         output = torch.bmm(attn, v)
@@ -54,7 +56,7 @@ class MultiHeadAttention(nn.Module):
         self.d_k = d_k
         self.d_v = d_v
         self.w_qs = nn.Linear(d_model, n_head * d_k)
-        self.w_ks = nn.Linear(d_model, n_head * d_k)
+        self .w_ks = nn.Linear(d_model, n_head * d_k)
         self.w_vs = nn.Linear(d_model, n_head * d_v)
         self.attention = ScaledDotProductAttention(d_k, dropout)
         self.layer_norm = nn.LayerNorm(d_model)
@@ -133,3 +135,10 @@ class TransformerUnit(nn.Module):
 
 
 
+if __name__ == "__main__":
+    input = torch.randn(2, 3)
+    input = input > 0.5
+    input[0,2]=False
+    
+    input = input ==False
+    print(input)

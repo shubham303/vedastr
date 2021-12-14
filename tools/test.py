@@ -10,8 +10,8 @@ from vedastr.utils import Config  # noqa 402
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Test.')
-    parser.add_argument('config', type=str, help='Config file path')
-    parser.add_argument('checkpoint', type=str, help='Checkpoint file path')
+    parser.add_argument('--config', type=str, help='Config file path')
+    parser.add_argument('--checkpoint', type=str, help='Checkpoint file path')
     parser.add_argument('--distribute', default=False, action='store_true')
     parser.add_argument('--local_rank', type=int, default=0)
     args = parser.parse_args()

@@ -70,9 +70,17 @@ class Cdisnet(nn.Module):
             inputs = [inputs]
         input = inputs[0]
         input_char = inputs[1]
+        
+        if not self.training:
+            #TODO update this code to align with other lstm heads.
+            batch_size = input.size(0)
+            input_char = torch.full((batch_size, self.max_seq_len), 120).long().to(device) # TODO change this code,
+            # just increase the size of input_char to max_seq_len and clone the columns
+            
+        
         vis_feature = self.vis_module(input)
         pos_embedding = self.pos_module(input_char)
-        if self.is_train:
+        if self.training:
             sem_embedding = self.sem_module(vis_feature, input_char)
             outputs = self.mdcdp(pos_embedding, vis_feature, sem_embedding)
             outputs = self.linear(outputs)

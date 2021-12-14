@@ -44,8 +44,8 @@ class MDCDP(nn.Module):
     def _generate_pos_mask(self, query, key):
         query_length = query.size(1)
         key_length = key.size(1)
-        mask = torch.tril(
-            torch.ones((query_length, key_length), dtype=torch.bool)
+        mask = torch.triu(
+            torch.ones((query_length, key_length), dtype=torch.bool) , diagonal=1
         ).to(device)
         return mask
 
