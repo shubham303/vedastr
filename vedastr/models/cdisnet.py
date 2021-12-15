@@ -50,7 +50,8 @@ class Cdisnet(nn.Module):
         
         if not self.training:
             batch_size = input.size(0)
-            input_char = torch.full((batch_size, self.max_seq_len), input_char[0, 0]).long().to(device)
+            input_char = torch.full((batch_size, self.max_seq_len), torch.clone(input_char[0, 0])).long().to(
+                device)
             
         
         vis_feature = self.vis_module(input)
@@ -66,8 +67,8 @@ class Cdisnet(nn.Module):
             for i in range(self.max_seq_len):
                 sem_embedding = self.sem_module(vis_feature, input_char)
                 fuse_feature = self.mdcdp_layers[0](pos_embedding, vis_feature, sem_embedding)
-                for i in range(1, len(self.mdcdp_layers)):
-                    fuse_feature = self.mdcdp_layers[i](fuse_feature, vis_feature, sem_embedding)
+                for l in range(1, len(self.mdcdp_layers)):
+                    fuse_feature = self.mdcdp_layers[l](fuse_feature, vis_feature, sem_embedding)
                 fuse_feature_step = fuse_feature[:, i, :]
                 fuse_feature_step = self.linear(fuse_feature_step)
                 outputs.append(fuse_feature_step)
