@@ -1,16 +1,16 @@
-#language specific changes:
-#TODO delete repeated characters. k kh g....   . during testing if those characters appear just change them to
-# similar character from both predicted and ground truth label only during testing.
-
-#TODO dont consider special characters to compute test accuracy./ remove special chars from predicted and ground
-# truth label only during testing.
-
-character = 'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ।॥०१२३४५६७८९%/?:,.-'
+# language specific changes:
+character = 'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗॠ०१२३४५६७८९ॲ%/?:,.-'
 test_sensitive = False
-test_character = 'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ।॥०१२३४५६७८९%/?:,.-'
+test_character = 'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗॠ०१२३४५६७८९ॲ'
 batch_max_length = 35
 test_folder_names = ['IIIT']  ###
-data_root ='/usr/datasets/synthetic_text_dataset/lmdb_dataset_Hindi/hindi/'
+char_similarity_map = {"क़": "क", "ख़": "ख", "ग़": "ग", "ज़": "ज", "ड़": "ड", "ढ़": "ढ", "फ़": "फ", "य़": "य", "ङ":"ड"}
+convert_similar_chars = True
+data_root = '/usr/datasets/synthetic_text_dataset/lmdb_dataset_Hindi/hindi/'
+validation_folder_names=['MJ_valid', "ST_valid"]
+mj_folder_names = ['MJ_test', 'MJ_train']
+
+
 
 # work directory
 root_workdir = 'workdir'
@@ -22,19 +22,20 @@ size = (32, 100)
 mean, std = 0.5, 0.5
 
 sensitive = True
-
+fiducial_num = 20
 dropout = 0.1
 n_e = 9
 n_d = 3
-hidden_dim = 256
 n_head = 8
-batch_norm = dict(type='BN')
-layer_norm = dict(type='LayerNorm', normalized_shape=hidden_dim)
-num_class = len(character) + 2
+norm_cfg = dict(type='BN')
+num_characters = len(character) + 2  # extra go and end character.
+num_class = len(character) + 1  # [GO] character is not in prediction list.
 
 inference = dict(
 	transform=[
 		dict(type='Sensitive', sensitive=sensitive),
+		dict(type='SimilarCharacterReplace', convert_similar_chars=convert_similar_chars,
+		     char_similarity_map=char_similarity_map),
 		dict(type='Filter', need_character=character),
 		dict(type='ToGray'),
 		dict(type='Resize', size=size),
@@ -49,9 +50,96 @@ inference = dict(
 	),
 	model=dict(
 		type='Cdisnet',
-		flags="/home/shubham/Documents/MTP/text-recognition-models/vedastr/configs/devanagari/config/cdistnet.yml",
-		num_class = len(character)+2,
-		need_text=True
+		vis_module=dict(
+			type="VisualModule",
+			tps=dict(
+				type='RectificatorComponent',
+				from_layer='input',
+				to_layer='rect',
+				arch=dict(
+					type='TPS_STN',
+					F=fiducial_num,
+					input_size=size,
+					output_size=size,
+					stn=dict(
+						feature_extractor=dict(
+							encoder=dict(
+								backbone=dict(
+									type='GBackbone',
+									layers=[
+										dict(type='ConvModule', in_channels=1, out_channels=64,
+										     kernel_size=3, stride=1, padding=1, norm_cfg=norm_cfg),
+										dict(type='MaxPool2d', kernel_size=2, stride=2),
+										dict(type='ConvModule', in_channels=64, out_channels=128,
+										     kernel_size=3, stride=1, padding=1, norm_cfg=norm_cfg),
+										dict(type='MaxPool2d', kernel_size=2, stride=2),
+										dict(type='ConvModule', in_channels=128, out_channels=256,
+										     kernel_size=3, stride=1, padding=1, norm_cfg=norm_cfg),
+										dict(type='MaxPool2d', kernel_size=2, stride=2),
+										dict(type='ConvModule', in_channels=256, out_channels=512,
+										     kernel_size=3, stride=1, padding=1, norm_cfg=norm_cfg),
+									],
+								),
+							),
+							collect=dict(type='CollectBlock', from_layer='c3')
+						),
+						pool=dict(type='AdaptiveAvgPool2d', output_size=1),
+						head=[
+							dict(type='FCModule', in_channels=512, out_channels=256),
+							dict(type='FCModule', in_channels=256, out_channels=fiducial_num * 2, activation=None)
+						],
+					),
+				),
+			),
+			d_input=1,
+			layers=[3, 4, 6, 6, 3],
+			n_layer=3,
+			d_model=512,
+			d_inner=1024,
+			n_head=8,
+			d_k=64,
+			d_v=64,
+			dropout=0
+		),
+		pos_module=dict(
+			type="PositionalEmbedding",
+			d_onehot=512,
+			d_hid=512,
+			n_position=200,
+			max_seq_len=batch_max_length
+		),
+		sem_module=dict(
+			type="SemanticEmbedding",
+			d_model=512,
+			rnn_layers=2,
+			rnn_dropout=0,
+			d_k=64,
+			attn_dropout=0,
+			max_seq_len=batch_max_length,
+			padding_idx=num_class,
+			num_classes=num_characters
+		),
+		mdcdp_layers=[dict(
+			type="MDCDP",
+			n_layer_sae=1,
+			d_model_sae=512,
+			d_inner_sae=1024,
+			n_head_sae=8,
+			d_k_sae=64,
+			d_v_sae=64,
+			n_layer=3,
+			d_model=512,
+			d_inner=512,
+			n_head=8,
+			d_k=64,
+			d_v=64,
+			dropout=0
+		) for i in range(0, 3)],
+		
+		need_text=True,
+		max_seq_len=batch_max_length + 1,
+		d_model = 512,
+		num_class = num_class
 	),
 	postprocess=dict(
 		sensitive=test_sensitive,
@@ -111,6 +199,8 @@ test = dict(
 		dataset=test_dataset,
 		transform=[
 			dict(type='Sensitive', sensitive=test_sensitive),
+			dict(type='SimilarCharacterReplace', convert_similar_chars=convert_similar_chars,
+			     char_similarity_map=char_similarity_map),
 			dict(type='Filter', need_character=test_character),
 			dict(type='ToGray'),
 			dict(type='Resize', size=size),
@@ -128,7 +218,7 @@ test = dict(
 # 4. train
 ## MJ dataset
 train_root_mj = data_root + 'training/MJ/'
-mj_folder_names = ['MJ_test', 'MJ_valid', 'MJ_train']
+
 ## ST dataset
 train_root_st = data_root + 'training/ST/'
 
@@ -137,11 +227,14 @@ train_dataset_mj = [dict(type='LmdbDataset', root=train_root_mj + folder_name)
 train_dataset_st = [dict(type='LmdbDataset', root=train_root_st)]
 
 # valid
+
 valid_root = data_root + 'validation/'
-valid_dataset = dict(type='LmdbDataset', root=valid_root, **test_dataset_params)
+valid_dataset = [dict(type='LmdbDataset', root=valid_root+folder_name, **test_dataset_params)for folder_name in validation_folder_names]
 
 train_transforms = [
 	dict(type='Sensitive', sensitive=sensitive),
+	dict(type='SimilarCharacterReplace', convert_similar_chars=convert_similar_chars,
+	     char_similarity_map=char_similarity_map),
 	dict(type='Filter', need_character=character),
 	dict(type='ToGray'),
 	dict(type='Resize', size=size),
@@ -191,11 +284,14 @@ train = dict(
 				workers_per_gpu=4,
 				shuffle=False,
 			),
-			dataset=valid_dataset,
+			dataset=dict(
+				type='ConcatDatasets',
+				datasets=valid_dataset,
+			),
 			transform=test['data']['transform'],
 		),
 	),
-	optimizer=dict(type='Adam', lr=3e-4),
+	optimizer=dict(type='Adam', lr=0.001),
 	criterion=dict(type='CrossEntropyLoss'),
 	lr_scheduler=dict(type='CosineLR',
 	                  iter_based=True,
@@ -203,10 +299,11 @@ train = dict(
 	                  ),
 	max_epochs=max_epochs,
 	log_interval=10,
-	trainval_ratio=8000,
-	snapshot_interval=20000,
+	trainval_ratio=2000,
+	max_iterations_val = 200,  # 10 percent of train_val ratio.
+	snapshot_interval=5000,
 	save_best=True,
-	#resume=dict(checkpoint = '/home/shubham/Documents/MTP/text-recognition-models/vedastr/tools/workdir/cdisnet
+	# resume=dict(checkpoint = '/home/shubham/Documents/MTP/text-recognition-models/vedastr/tools/workdir/cdisnet
 	# /iter20000.pth'),
 	resume=None
 )

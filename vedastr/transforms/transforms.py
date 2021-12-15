@@ -661,3 +661,31 @@ class TIA(DualTransform):
                 img_h + np.random.randint(thresh) - half_thresh
             ])
         return src_pts, dst_pts, img_w, img_h
+
+
+@TRANSFORMS.register_module
+class SimilarCharacterReplace(DualTransform):
+    
+    """
+    क़ख़ग़ज़ड़ढ़फ़य़  these characters are almost same as कखगङजयढफ. update labels with this change.
+    Args:
+        c (bool): If True, remove special characters from label.
+    """
+
+    def __init__(self, convert_similar_chars, char_similarity_map):
+        self.convert_similar_chars = convert_similar_chars
+        self.char_similarity_map= char_similarity_map
+        super(SimilarCharacterReplace, self).__init__(always_apply=True)
+
+    def __call__(self, force_apply=False, **kwargs):
+        label = kwargs.get('label')
+        if not self.convert_similar_chars:
+            label = "".join(map(str, [self.char_similarity_map[str(ch)] for ch in list(label) if str(ch) in
+                                      self.char_similarity_map]))
+        kwargs.update(label=label)
+        return kwargs
+
+    def get_transform_init_args_names(self):
+        return ()
+    
+    

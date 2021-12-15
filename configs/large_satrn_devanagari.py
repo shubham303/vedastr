@@ -1,10 +1,15 @@
 #language specific changes:
-character = 'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ।॥०१२३४५६७८९%/?:,.-'
+character = 'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗॠ०१२३४५६७८९ॲ%/?:,.-'
 test_sensitive = False
-test_character = 'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ।॥०१२३४५६७८९%/?:,.-'
+test_character = 'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗॠ०१२३४५६७८९ॲ'
 batch_max_length = 35
 test_folder_names = ['IIIT']  ###
+char_similarity_map = {"क़": "क", "ख़": "ख", "ग़": "ग", "ज़": "ज", "ड़": "ड", "ढ़": "ढ", "फ़": "फ", "य़": "य", "ङ":"ड"}
+convert_similar_chars = True
 data_root = '/usr/datasets/synthetic_text_dataset/lmdb_dataset_Hindi/hindi/'
+validation_folder_names=['MJ_valid', "ST_valid"]
+mj_folder_names = ['MJ_test', 'MJ_train']
+
 # language specific chanage end here.
 
 # work directory
@@ -29,6 +34,8 @@ num_steps = batch_max_length + 1
 inference = dict(
 	transform=[
 		dict(type='Sensitive', sensitive=sensitive),
+		dict(type='SimilarCharacterReplace', convert_similar_chars=convert_similar_chars,
+		     char_similarity_map=char_similarity_map),
 		dict(type='Filter', need_character=character),
 		dict(type='ToGray'),
 		dict(type='Resize', size=size),
@@ -229,6 +236,8 @@ test = dict(
 		dataset=test_dataset,
 		transform=[
 			dict(type='Sensitive', sensitive=test_sensitive),
+			dict(type='SimilarCharacterReplace', convert_similar_chars=convert_similar_chars,
+		     char_similarity_map=char_similarity_map),
 			dict(type='Filter', need_character=test_character),
 			dict(type='ToGray'),
 			dict(type='Resize', size=size),
@@ -246,7 +255,6 @@ test = dict(
 # 4. train
 ## MJ dataset
 train_root_mj = data_root + 'training/MJ/'
-mj_folder_names = ['MJ_test', 'MJ_valid', 'MJ_train']
 ## ST dataset
 train_root_st = data_root + 'training/ST/'
 
@@ -256,10 +264,12 @@ train_dataset_st = [dict(type='LmdbDataset', root=train_root_st)]
 
 # valid
 valid_root = data_root + 'validation/'
-valid_dataset = dict(type='LmdbDataset', root=valid_root, **test_dataset_params)
+valid_dataset = [dict(type='LmdbDataset', root=valid_root+folder_name, **test_dataset_params)for folder_name in validation_folder_names]
 
 train_transforms = [
 	dict(type='Sensitive', sensitive=sensitive),
+	dict(type='SimilarCharacterReplace', convert_similar_chars=convert_similar_chars,
+		     char_similarity_map=char_similarity_map),
 	dict(type='Filter', need_character=character),
 	dict(type='ToGray'),
 	dict(type='ExpandRotate', limit=34, p=0.5),
@@ -310,7 +320,10 @@ train = dict(
 				workers_per_gpu=4,
 				shuffle=False,
 			),
-			dataset=valid_dataset,
+			dataset=dict(
+				type='ConcatDatasets',
+				datasets=valid_dataset,
+			),
 			transform=test['data']['transform'],
 		),
 	),
@@ -323,6 +336,7 @@ train = dict(
 	max_epochs=max_epochs,
 	log_interval=10,
 	trainval_ratio=2000,
+	max_iterations_val = 200,
 	snapshot_interval=5000,
 	save_best=True,
 	resume=None,

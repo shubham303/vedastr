@@ -34,11 +34,16 @@ class TrainRunner(InferenceRunner):
         self.train_cfg = train_cfg
 
         self.max_iterations = train_cfg.get('max_iterations', False)
+        self.max_iterations_val=train_cfg.get('max_iterations_val', False)
         self.max_epochs = train_cfg.get('max_epochs', False)
         assert self.max_epochs ^ self.max_iterations, \
             'max_epochs and max_iterations are mutual exclusion'
         if not self.max_iterations:
             self.max_iterations = len(self.train_dataloader) * self.max_epochs
+        
+        if not self.max_iterations_val:
+            self.max_iterations_val = len(self.val_dataloader)
+            
         if not self.max_epochs:
             self.max_epochs = self.max_iterations // len(self.train_dataloader)
 
@@ -53,7 +58,7 @@ class TrainRunner(InferenceRunner):
         self.save_best = train_cfg.get('save_best', True)
         self.best_acc = -1
         self.best_norm = -1
-
+        
         assert self.workdir is not None
         assert self.log_interval > 0
 
@@ -86,6 +91,9 @@ class TrainRunner(InferenceRunner):
         self.logger.info('Iteration %s, Start validating' % (self.iter + 1))
         self.metric.reset()
         for vidx, (img, label) in enumerate(self.val_dataloader):
+            #validate should take 10% of iterations as that of number of train iterations in one epoch.
+            if vidx == self.max_iterations_val:
+                break
             exclude_num = self.val_exclude_num if vidx == len(
                 self.val_dataloader) else 0
             self._validate_batch(img, label, exclude_num)
