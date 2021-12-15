@@ -6,7 +6,8 @@ batch_max_length = 35
 test_folder_names = ['IIIT']  ###
 char_similarity_map = {"क़": "क", "ख़": "ख", "ग़": "ग", "ज़": "ज", "ड़": "ड", "ढ़": "ढ", "फ़": "फ", "य़": "य", "ङ":"ड"}
 convert_similar_chars = True
-data_root = '/usr/datasets/synthetic_text_dataset/lmdb_dataset_Hindi/hindi/'
+#data_root = '/usr/datasets/synthetic_text_dataset/lmdb_dataset_Hindi/hindi/'
+data_root = '/home/ocr/datasets/recognition/hindi/'
 validation_folder_names=['MJ_valid', "ST_valid"]
 mj_folder_names = ['MJ_test', 'MJ_train']
 
