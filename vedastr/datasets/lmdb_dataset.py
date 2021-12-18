@@ -61,7 +61,12 @@ class LmdbDataset(BaseDataset):
             for index in range(n_samples):
                 idx = index + 1  # lmdb starts with 1
                 label_key = 'label-%09d'.encode() % idx
-                label = txn.get(label_key).decode('utf-8')
+                try:
+                    label = txn.get(label_key).decode('utf-8')
+                except:
+                    print("error occured , possibly key does not exist in database")  # remove try catch it is a
+                    # temporary fix.
+                    break
                 if self.filter(
                         label
                 ):  # if length of label larger than max_len, drop this sample
