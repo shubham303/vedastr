@@ -23,7 +23,7 @@ symbols = "।  ॥  ०  १  २  ३  ४  ५  ६  ७  ८  ९ %  /  ?  :
 # work directory
 root_workdir = 'workdir'
 # sample_per_gpu
-samples_per_gpu = 32
+samples_per_gpu = 64
 ###############################################################################
 # 1. inference
 size = (32, 100)
