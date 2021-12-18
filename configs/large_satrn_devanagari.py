@@ -4,25 +4,32 @@ test_sensitive = False
 test_character = 'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗॠ०१२३४५६७८९ॲ'
 batch_max_length = 35
 test_folder_names = ['IIIT']  ###
-char_similarity_map = {"क़": "क", "ख़": "ख", "ग़": "ग", "ज़": "ज", "ड़": "ड", "ढ़": "ढ", "फ़": "फ", "य़": "य", "ङ":"ड"}
-convert_similar_chars = True
 #data_root = '/usr/datasets/synthetic_text_dataset/lmdb_dataset_Hindi/hindi/'
 data_root = '/home/ocr/datasets/recognition/hindi/'
 validation_folder_names=['MJ_valid', "ST_valid"]
 mj_folder_names = ['MJ_test', 'MJ_train']
+
+m = "ऀ  ँ ं ः  ॕ "
+V = "ऄ ई ऊ ऍ  ऎ ऐ ऑ ऒ ओ औ"
+CH = "अ आ उ ए इ ऌ क  ख  ग ऋ  घ  ङ  च  छ  ज  झ  ञ  ट  ठ  ड  ढ  ण  त  थ  द  ध  न  ऩ  प  फ  ब  भ  म  य  र  ऱ  ल  ळ  ऴ  व  " \
+     "श  ष  " \
+     "स  ह ॐ क़  ख़  ग़  ज़  ड़  ढ़  फ़  य़  ॠ  ॡ"
+v = "ा  ि  ी  ु  ू  ृ  ॄ  ॉ  ॊ  ो  ौ  ॎ  ॏ ॑  ॒  ॓ ़ ॔  ॅ े ै ॆ ्  ॖ   ॗ ॢ  ॣ"
+symbols = "।  ॥  ०  १  २  ३  ४  ५  ६  ७  ८  ९ %  /  ?  :  ,  .  -"
+
 
 # language specific chanage end here.
 
 # work directory
 root_workdir = 'workdir'
 # sample_per_gpu
-samples_per_gpu = 64
+samples_per_gpu = 32
 ###############################################################################
 # 1. inference
 size = (32, 100)
 mean, std = 0.5, 0.5
 sensitive = True
-dropout = 0.9
+dropout = 0.1
 n_e = 12
 n_d = 6
 hidden_dim = 512
@@ -35,8 +42,6 @@ num_steps = batch_max_length + 1
 inference = dict(
 	transform=[
 		dict(type='Sensitive', sensitive=sensitive),
-		dict(type='SimilarCharacterReplace', convert_similar_chars=convert_similar_chars,
-		     char_similarity_map=char_similarity_map),
 		dict(type='Filter', need_character=character),
 		dict(type='ToGray'),
 		dict(type='Resize', size=size),
@@ -205,13 +210,25 @@ common = dict(
 ###############################################################################
 dataset_params = dict(
 	batch_max_length=batch_max_length,
-	data_filter=False,
+	data_filter=True,
 	character=character,
+	filter_invalid_indic_labels=True,
+	CH=CH,
+	V=V,
+	v=v,
+	m=m,
+	symbols=symbols,
 )
 test_dataset_params = dict(
 	batch_max_length=batch_max_length,
-	data_filter=False,
+	data_filter=True,
 	character=test_character,
+	filter_invalid_indic_labels=True,
+	CH=CH,
+	V=V,
+	v=v,
+	m=m,
+	symbols=symbols,
 )
 
 # data_root = './data/data_lmdb_release/'
@@ -237,8 +254,6 @@ test = dict(
 		dataset=test_dataset,
 		transform=[
 			dict(type='Sensitive', sensitive=test_sensitive),
-			dict(type='SimilarCharacterReplace', convert_similar_chars=convert_similar_chars,
-		     char_similarity_map=char_similarity_map),
 			dict(type='Filter', need_character=test_character),
 			dict(type='ToGray'),
 			dict(type='Resize', size=size),
@@ -269,8 +284,6 @@ valid_dataset = [dict(type='LmdbDataset', root=valid_root+folder_name, **test_da
 
 train_transforms = [
 	dict(type='Sensitive', sensitive=sensitive),
-	dict(type='SimilarCharacterReplace', convert_similar_chars=convert_similar_chars,
-		     char_similarity_map=char_similarity_map),
 	dict(type='Filter', need_character=character),
 	dict(type='ToGray'),
 	dict(type='ExpandRotate', limit=34, p=0.5),

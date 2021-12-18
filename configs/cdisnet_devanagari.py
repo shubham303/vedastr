@@ -1,17 +1,22 @@
 # language specific changes:
-character = 'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗॠ०१२३४५६७८९ॲ%/?:,.-'
+character = 'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ।॥०१२३४५६७८९ॲ%/?:,.-'
 test_sensitive = False
-test_character = 'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗॠ०१२३४५६७८९ॲ'
-batch_max_length = 35
+test_character = 'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ०१२३४५६७८९ॲ'
+batch_max_length = 25
 test_folder_names = ['IIIT']  ###
-char_similarity_map = {"क़": "क", "ख़": "ख", "ग़": "ग", "ज़": "ज", "ड़": "ड", "ढ़": "ढ", "फ़": "फ", "य़": "य", "ङ":"ड"}
-convert_similar_chars = True
 #data_root = '/usr/datasets/synthetic_text_dataset/lmdb_dataset_Hindi/hindi/'
 data_root = '/home/ocr/datasets/recognition/hindi/'
-validation_folder_names=['MJ_valid', "ST_valid"]
+validation_folder_names = ['MJ_valid', "ST_valid"]
 mj_folder_names = ['MJ_test', 'MJ_train']
 
-
+# CH V , v and m are used to filter valid words in language
+m = "ऀ  ँ ं ः  ॕ "
+V = "ऄ ई ऊ ऍ  ऎ ऐ ऑ ऒ ओ औ"
+CH = "अ आ उ ए इ ऌ क  ख  ग ऋ  घ  ङ  च  छ  ज  झ  ञ  ट  ठ  ड  ढ  ण  त  थ  द  ध  न  ऩ  प  फ  ब  भ  म  य  र  ऱ  ल  ळ  ऴ  व  " \
+     "श  ष  " \
+     "स  ह ॐ क़  ख़  ग़  ज़  ड़  ढ़  फ़  य़  ॠ  ॡ"
+v = "ा  ि  ी  ु  ू  ृ  ॄ  ॉ  ॊ  ो  ौ  ॎ  ॏ ॑  ॒  ॓ ़ ॔  ॅ े ै ॆ ्  ॖ   ॗ ॢ  ॣ"
+symbols = "।  ॥  ०  १  २  ३  ४  ५  ६  ७  ८  ९ %  /  ?  :  ,  .  -"
 
 # work directory
 root_workdir = 'workdir'
@@ -35,8 +40,6 @@ num_class = len(character) + 1  # [GO] character is not in prediction list.
 inference = dict(
 	transform=[
 		dict(type='Sensitive', sensitive=sensitive),
-		dict(type='SimilarCharacterReplace', convert_similar_chars=convert_similar_chars,
-		     char_similarity_map=char_similarity_map),
 		dict(type='Filter', need_character=character),
 		dict(type='ToGray'),
 		dict(type='Resize', size=size),
@@ -139,8 +142,8 @@ inference = dict(
 		
 		need_text=True,
 		max_seq_len=batch_max_length + 1,
-		d_model = 512,
-		num_class = num_class
+		d_model=512,
+		num_class=num_class
 	),
 	postprocess=dict(
 		sensitive=test_sensitive,
@@ -168,13 +171,25 @@ common = dict(
 ###############################################################################
 dataset_params = dict(
 	batch_max_length=batch_max_length,
-	data_filter=False,
+	data_filter=True,
 	character=character,
+	filter_invalid_indic_labels=True,
+	CH=CH,
+	V=V,
+	v=v,
+	m=m,
+	symbols=symbols,
 )
 test_dataset_params = dict(
 	batch_max_length=batch_max_length,
-	data_filter=False,
+	data_filter=True,
 	character=test_character,
+	filter_invalid_indic_labels=True,
+	CH=CH,
+	V=V,
+	v=v,
+	m=m,
+	symbols=symbols,
 )
 
 # data_root = './data/data_lmdb_release/'
@@ -200,8 +215,6 @@ test = dict(
 		dataset=test_dataset,
 		transform=[
 			dict(type='Sensitive', sensitive=test_sensitive),
-			dict(type='SimilarCharacterReplace', convert_similar_chars=convert_similar_chars,
-			     char_similarity_map=char_similarity_map),
 			dict(type='Filter', need_character=test_character),
 			dict(type='ToGray'),
 			dict(type='Resize', size=size),
@@ -230,12 +243,11 @@ train_dataset_st = [dict(type='LmdbDataset', root=train_root_st)]
 # valid
 
 valid_root = data_root + 'validation/'
-valid_dataset = [dict(type='LmdbDataset', root=valid_root+folder_name, **test_dataset_params)for folder_name in validation_folder_names]
+valid_dataset = [dict(type='LmdbDataset', root=valid_root + folder_name, **test_dataset_params) for folder_name in
+                 validation_folder_names]
 
 train_transforms = [
 	dict(type='Sensitive', sensitive=sensitive),
-	dict(type='SimilarCharacterReplace', convert_similar_chars=convert_similar_chars,
-	     char_similarity_map=char_similarity_map),
 	dict(type='Filter', need_character=character),
 	dict(type='ToGray'),
 	dict(type='Resize', size=size),
@@ -300,11 +312,10 @@ train = dict(
 	                  ),
 	max_epochs=max_epochs,
 	log_interval=10,
-	trainval_ratio=2000,
-	max_iterations_val = 200,  # 10 percent of train_val ratio.
+	trainval_ratio=4000,
+	max_iterations_val=200,  # 10 percent of train_val ratio.
 	snapshot_interval=5000,
 	save_best=True,
-	# resume=dict(checkpoint = '/home/shubham/Documents/MTP/text-recognition-models/vedastr/tools/workdir/cdisnet
-	# /iter20000.pth'),
 	resume=None
+	# resume=None
 )

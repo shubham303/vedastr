@@ -27,14 +27,26 @@ class LmdbDataset(BaseDataset):
                  transform=None,
                  character: str = 'abcdefghijklmnopqrstuvwxyz0123456789',
                  batch_max_length: int = 100000,
-                 data_filter: bool = True):
+                 data_filter: bool = True,filter_invalid_indic_labels: bool = False,
+                 V: str = None,
+                 CH: str = None,
+                 v: str = None,
+                 m: str = None,
+                 symbols: str= None):
         self.index_list = []
         super(LmdbDataset, self).__init__(
             root=root,
             transform=transform,
             character=character,
             batch_max_length=batch_max_length,
-            data_filter=data_filter)
+            data_filter=data_filter,
+            filter_invalid_indic_labels=True,
+            CH=CH,
+            V=V,
+            v=v,
+            m=m,
+            symbols=symbols,
+        )
 
     def get_name_list(self):
         self.env = lmdb.open(
@@ -57,6 +69,7 @@ class LmdbDataset(BaseDataset):
                 else:
                     self.index_list.append(idx)
             self.samples = len(self.index_list)
+
 
     def read_data(self, index):
         assert index <= len(self), 'index range error'
