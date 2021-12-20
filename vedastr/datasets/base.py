@@ -109,8 +109,7 @@ class BaseDataset(Dataset):
         
         if not self.filter_invalid_indic_labels:
             return True
-        #print(list(label) , end=" ")
-        #print(label)
+        
         state = 0
         valid=True
         
@@ -142,13 +141,11 @@ class BaseDataset(Dataset):
                     state = 0
                     continue
                     
-        
             if state == 2:
                 if ch in self.v:
                     state = 3
                     continue
                     
-            
                 if ch in self.m:
                     state = 0
                     continue
@@ -161,18 +158,6 @@ class BaseDataset(Dataset):
                 if ch in self.v:
                     valid = False
                     break
-        if valid:
-            f = open("valid_words.txt", "a")
-            f.write(str(list(label)))
-            f.write("\n")
-            f.close()
-            
-        else:
-            f = open("invalid_words.txt", "a")
-            f.write(str(list(label)))
-            f.write("\n")
-            f.close()
-        
         return valid
     
     
