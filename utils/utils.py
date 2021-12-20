@@ -1,16 +1,20 @@
+tamil = "ஂஃஅஆஇஈஉஊஎஏஐஒஓஔக஗ஙசஜஞடணதநனப஬மயரறலளழவஶஷஸஹ஻஼஽ாிீுூெேைொோௌ்௏ௐௗ௘௛௞௦௧௨௩௪௫௬௭௮௯௰௱௲௳௴௵௶௷௸௹௺"
+malyalam= "ഀഁംഃഄഅആഇഈഉഊഋഌഎഏഐഒഓഔകഖഗഘങചഛജഝഞടഠഡഢണതഥദധനഩപഫബഭമയരറലളഴവശഷസഹഺ഻഼ഽാിീുൂൃൄെേൈൊോൌ്ൎ൏ൔൕൖൗ൘൙൚൛൜൝൞ൟൠൡൢൣ൦൧൨൩൪൫൬൭൮൯൰൱൲൳൴൵൶൷൸൹ൺൻർൽൾൿ"
+bengali = 'ঀঁংঃঅআইঈউঊঋঌএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরল঳঴঵শষসহ়ঽািীুূৃৄেৈোৌ্ৎৗড়ঢ়য়ৠৡৢৣ০১২৩৪৫৬৭৮৯ৰৱ৲৳৴৵৶৷৸৹৺৻ৼ৽৾'
+
 def print_unicode_characters_in_range(a, b):
 	ch=a
 	while(ch<=b):
-		print(ch, end="  ")
+		print(ch, end=" ")
 		ch = chr(ord(ch)+1)
 
 	#also print special characters.
 	
-	l=["%" , "/", "?", ":", ",",".","-"]
-	for a in l:
-		print(a , end="  ")
+	#l=["%" , "/", "?", ":", ",",".","-"]
+	#for a in l:
+	#	print(a , end="")
 
 
 if __name__ == "__main__":
-	print_unicode_characters_in_range('ऀ',"ॲ")
+	print_unicode_characters_in_range('ঀ',"৾")
 	

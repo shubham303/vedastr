@@ -1,29 +1,25 @@
 # language specific changes:
-character = 'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ।॥०१२३४५६७८९ॲ%/?:,.-'
+tamil = "ஂஃஅஆஇஈஉஊஎஏஐஒஓஔக஗ஙசஜஞடணதநனப஬மயரறலளழவஶஷஸஹ஻஼஽ாிீுூெேைொோௌ்௏ௐௗ௘௛௞௦௧௨௩௪௫௬௭௮௯௰௱௲௳௴௵௶௷௸௹௺"
+malyalam= "ഀഁംഃഄഅആഇഈഉഊഋഌഎഏഐഒഓഔകഖഗഘങചഛജഝഞടഠഡഢണതഥദധനഩപഫബഭമയരറലളഴവശഷസഹഺ഻഼ഽാിീുൂൃൄെേൈൊോൌ്ൎ൏ൔൕൖൗ൘൙൚൛൜൝൞ൟൠൡൢൣ൦൧൨൩൪൫൬൭൮൯൰൱൲൳൴൵൶൷൸൹ൺൻർൽൾൿ"
+bengali = 'ঀঁংঃঅআইঈউঊঋঌএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরল঳঴঵শষসহ়ঽািীুূৃৄেৈোৌ্ৎৗড়ঢ়য়ৠৡৢৣ০১২৩৪৫৬৭৮৯ৰৱ৲৳৴৵৶৷৸৹৺৻ৼ৽৾'
+hindi =  'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ।॥०१२३४५६७८९ॲ'
+symbols= "%/?:,.-"
+
+character = hindi+malyalam+bengali+tamil+symbols
+
 test_sensitive = False
-test_character = 'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ०१२३४५६७८९ॲ'
+test_character =  hindi+malyalam+bengali+tamil
 batch_max_length = 25
 test_folder_names = ['IIIT']  ###
-data_root = '/usr/datasets/synthetic_text_dataset/lmdb_dataset_Hindi/'
+data_root = '/usr/datasets/synthetic_text_dataset/lmdb_dataset_Hindi/{}/'
+
+langs =["hindi", "tamil", "telugu" , "malayalam"]
+
 # data_root = '/home/ocr/datasets/recognition/hindi/'
 validation_folder_names = ['MJ_valid', "ST_valid"]
 mj_folder_names = ['MJ_test', 'MJ_train']
 
-## MJ dataset
-train_root_mj = data_root + 'training/MJ/'
 
-## ST dataset
-train_root_st = data_root + 'training/ST/'
-
-train_dataset_mj = [dict(type='LmdbDataset', root=train_root_mj + folder_name)
-                    for folder_name in mj_folder_names]
-train_dataset_st = [dict(type='LmdbDataset', root=train_root_st)]
-
-# valid
-
-valid_root = data_root + 'validation/'
-valid_dataset = [dict(type='LmdbDataset', root=valid_root + folder_name, **test_dataset_params) for folder_name in
-                 validation_folder_names]
 
 # CH V , v and m are used to filter valid words in language
 m = "ऀ  ँ ं ः  ॕ "
@@ -210,14 +206,17 @@ test_dataset_params = dict(
 
 # data_root = './data/data_lmdb_release/'
 ###############################################################################
+## MJ dataset
+
+
 # 3. test
 test_root = data_root + 'evaluation/'
 # test_folder_names = ['CUTE80', 'IC03_867', 'IC13_1015', 'IC15_2077',
 #                     'IIIT5k_3000', 'SVT', 'SVTP']
 
 
-test_dataset = [dict(type='LmdbDataset', root=test_root + f_name,
-                     **test_dataset_params) for f_name in test_folder_names]
+test_dataset = [dict(type='LmdbDataset', root=(test_root + f_name).format(lang),
+                     **test_dataset_params) for f_name in test_folder_names for lang in langs]
 
 test = dict(
 	data=dict(
@@ -246,7 +245,21 @@ test = dict(
 
 ###############################################################################
 # 4. train
+train_root_mj = data_root + 'training/MJ/'
 
+## ST dataset
+train_root_st = data_root + 'training/ST/'
+
+train_dataset_mj = [dict(type='LmdbDataset', root=(train_root_mj + folder_name).format(lang))
+                    for folder_name in mj_folder_names for lang in langs ]
+train_dataset_st = [dict(type='LmdbDataset', root=train_root_st.format(lang)) for lang in langs]
+
+# valid
+
+valid_root = data_root + 'validation/'
+valid_dataset = [dict(type='LmdbDataset', root=(valid_root + folder_name).format(lang), **test_dataset_params) for
+                 folder_name in
+                 validation_folder_names for lang in langs ]
 
 train_transforms = [
 	dict(type='Sensitive', sensitive=sensitive),

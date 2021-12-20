@@ -316,6 +316,6 @@ train = dict(
 	max_iterations_val=200,  # 10 percent of train_val ratio.
 	snapshot_interval=5000,
 	save_best=True,
-	resume=None
+	resume=dict(checkpoint = "/home/shubham/Documents/MTP/text-recognition-models/vedastr/workdir/cdisnet_devanagari/iter20000.pth")
 	# resume=None
 )

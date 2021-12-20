@@ -1,4 +1,4 @@
-"""import random
+import random
 
 import cv2
 import lmdb
@@ -24,7 +24,7 @@ with env.begin(write=False) as txn:
         
         cv2.imwrite("temp.jpg", img)
         print(label)
-        label=None"""
+        label=None
 import cv2
 
 lines = open("/home/shubham/Documents/IIIT-ILST/Devanagari/cropped/Devanagari/WordImagesList.txt").readlines()
