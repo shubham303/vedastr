@@ -304,5 +304,5 @@ train = dict(
 	max_iterations_val=200,  # 10 percent of train_val ratio.
 	snapshot_interval=5000,
 	save_best=True,
-	resume=dict(checkpoint = "/home/ocr/program/vedastr/workdir/cdisnet_malyalam/best_acc.pth ")
+	resume=dict(checkpoint = "/home/ocr/program/vedastr/workdir/cdisnet_malyalam/best_acc.pth")
 )
