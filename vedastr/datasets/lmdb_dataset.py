@@ -40,7 +40,7 @@ class LmdbDataset(BaseDataset):
             character=character,
             batch_max_length=batch_max_length,
             data_filter=data_filter,
-            filter_invalid_indic_labels=True,
+            filter_invalid_indic_labels=False,
             CH=CH,
             V=V,
             v=v,
