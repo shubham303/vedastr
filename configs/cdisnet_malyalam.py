@@ -5,7 +5,7 @@ test_character =  "ഀഁംഃഄഅആഇഈഉഊഋഌഎഏഐഒഓഔക�
 batch_max_length = 25
 test_folder_names = ['IIIT']  ###
 #data_root = '/usr/datasets/synthetic_text_dataset/lmdb_dataset_Hindi/hindi/'
-data_root = '/home/ocr/datasets/recognition/hindi/'
+data_root = '/home/ocr/datasets/recognition/malyalam/'
 validation_folder_names = ['MJ_valid', "ST_valid"]
 mj_folder_names = ['MJ_test', 'MJ_train']
 
@@ -304,6 +304,5 @@ train = dict(
 	max_iterations_val=200,  # 10 percent of train_val ratio.
 	snapshot_interval=5000,
 	save_best=True,
-	resume=dict(checkpoint = "/home/shubham/Documents/MTP/text-recognition-models/vedastr/workdir/cdisnet_devanagari/iter20000.pth")
-	# resume=None
+	resume=None
 )
