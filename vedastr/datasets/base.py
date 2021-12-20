@@ -107,8 +107,6 @@ class BaseDataset(Dataset):
 
     def is_valid_label(self, label):
         
-        print(self.filter_invalid_indic_labels)
-        
         if not self.filter_invalid_indic_labels:
             return True
         
