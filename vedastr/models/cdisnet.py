@@ -16,7 +16,7 @@ import os
 import sys
 __dir__ = os.path.dirname(os.path.abspath(__file__))
 
-from vedastr.models.cdisnet_body import build_cdisnet_body
+from vedastr.models.bodies import build_body
 from .registry import MODELS
 
 sys.path.append(__dir__)
@@ -35,10 +35,10 @@ class Cdisnet(nn.Module):
     def __init__(self, vis_module, sem_module, pos_module, mdcdp_layers, d_model,num_class,  max_seq_len,  need_text):
         super(Cdisnet, self).__init__()
         self.need_text=need_text
-        self.vis_module = build_cdisnet_body(vis_module)
-        self.pos_module =build_cdisnet_body(pos_module)
-        self.sem_module = build_cdisnet_body(sem_module)
-        self.mdcdp_layers  = nn.ModuleList([build_cdisnet_body(mdcdp) for mdcdp in mdcdp_layers])
+        self.vis_module = build_body(vis_module)
+        self.pos_module =build_body(pos_module)
+        self.sem_module = build_body(sem_module)
+        self.mdcdp_layers  = nn.ModuleList([build_body(mdcdp) for mdcdp in mdcdp_layers])
         self.linear = nn.Linear(d_model,num_class)
         self.max_seq_len = max_seq_len
 
@@ -56,6 +56,7 @@ class Cdisnet(nn.Module):
         
         vis_feature = self.vis_module(input)
         pos_embedding = self.pos_module(input_char)
+        
         if self.training:
             sem_embedding = self.sem_module(vis_feature, input_char)
             outputs = self.mdcdp_layers[0](pos_embedding, vis_feature, sem_embedding)

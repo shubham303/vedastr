@@ -6,3 +6,8 @@ from .sequences import build_sequence_decoder, build_sequence_encoder  # noqa 40
 from .component import (BrickComponent, FeatureExtractorComponent,  # noqa 401
                         PlugComponent, RectificatorComponent,  # noqa 401
                         SequenceEncoderComponent)  # noqa 401
+from .mdcdp import MDCDP
+from .positional_module import PositionalEmbedding
+from .semantic_module import  SemanticEmbedding
+from visual_module import  VisualModule
+

@@ -15,24 +15,23 @@ from __future__ import print_function
 
 import os
 import sys
-import math
+
 __dir__ = os.path.dirname(os.path.abspath(__file__))
 
 from vedastr.models.bodies import build_component
-from vedastr.models.cdisnet_body.registry import CDISNET_BODY
+from vedastr.models.bodies.registry import BODIES
 
 sys.path.append(__dir__)
 sys.path.append(os.path.abspath(os.path.join(__dir__, '../')))
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 from transformer import TransformerUnit
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-@CDISNET_BODY.register_module
+@BODIES.register_module
 class VisualModule(nn.Module):
     def __init__(self, tps , d_input, layers, n_layer, d_model, d_inner,
                     n_head, d_k, d_v, dropout=0.1):

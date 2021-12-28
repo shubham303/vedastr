@@ -40,7 +40,7 @@ class LmdbDataset(BaseDataset):
             character=character,
             batch_max_length=batch_max_length,
             data_filter=data_filter,
-            filter_invalid_indic_labels=False,
+            filter_invalid_indic_labels=filter_invalid_indic_labels,
             CH=CH,
             V=V,
             v=v,
@@ -58,14 +58,13 @@ class LmdbDataset(BaseDataset):
             meminit=False)
         with self.env.begin(write=False) as txn:
             n_samples = int(txn.get('num-samples'.encode()))
-            for index in range(n_samples):
+            for index in range(2*n_samples):
                 idx = index + 1  # lmdb starts with 1
                 label_key = 'label-%09d'.encode() % idx
                 try:
                     label = txn.get(label_key).decode('utf-8')
                 except:
-                    print("error occured , possibly key does not exist in database")  # remove try catch it is a
-                    # temporary fix.
+                    print("error occured , possibly key does not exist in database")
                     break
                 if self.filter(
                         label

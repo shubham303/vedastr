@@ -17,7 +17,6 @@ import sys
 __dir__ = os.path.dirname(os.path.abspath(__file__))
 
 from vedastr.models.bodies.registry import BODIES
-from vedastr.models.cdisnet_body.registry import CDISNET_BODY
 
 sys.path.append(__dir__)
 sys.path.append(os.path.abspath(os.path.join(__dir__, '..')))
@@ -29,7 +28,7 @@ from transformer import TransformerUnit
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-@CDISNET_BODY.register_module
+@BODIES.register_module
 class MDCDP(nn.Module):
     def __init__(self, n_layer_sae, d_model_sae, d_inner_sae, n_head_sae, d_k_sae, d_v_sae,
                        n_layer, d_model, d_inner, n_head, d_k, d_v, dropout=0.1):

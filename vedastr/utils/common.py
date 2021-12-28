@@ -66,7 +66,7 @@ def obj_from_dict_registry(cfg, registry, default_args=None):
     if isinstance(obj_type, str):
         obj_cls = registry.get(obj_type)
         if obj_cls is None:
-            raise KeyError('{} is not in the {} registry'.format(
+            raise KeyError("{} is not in the {} registry".format(
                 obj_type, registry.name))
     elif inspect.isclass(obj_type):
         obj_cls = obj_type

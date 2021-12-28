@@ -1,3 +1,5 @@
+import os
+
 import cv2
 import numpy as np
 import torch
@@ -34,18 +36,23 @@ class TestRunner(InferenceRunner):
                 pred = self.model((img,))
 
             pred, prob = self.postprocess(pred, self.postprocess_cfg)
-
+           
             if save_path is not None:
                 for idx, (p, l) in enumerate(zip(pred, label)):
                     if p == l:
-                        print(p, '\t', l)
-                        cimg = img[idx][0, :, :].cpu().numpy()
-                        cimg = (cimg * 0.5) + 0.5
-                        cv2.imwrite(save_path + f'/%s_{p}_{l}.png' % idx,
-                                    (cimg * 255).astype(np.uint8))
+                        path =  os.path.join(save_path, "correct/")
+                    else:
+                        path= os.path.join(save_path, "incorrect/")
+                    print(p, '\t', l)
+                    cimg = img[idx][0, :, :].cpu().numpy()
+                    cimg = (cimg * 0.5) + 0.5
+                    cv2.imwrite(path + f'/%s_{p}_{l}.png' % idx,
+                                (cimg * 255).astype(np.uint8))
+                    
+                    
             self.metric.measure(pred, prob, label, exclude_num)
             self.backup_metric.measure(pred, prob, label, exclude_num)
-
+            
     def __call__(self):
         self.logger.info('Start testing')
         self.logger.info('test info: %s' % self.postprocess_cfg)
@@ -53,7 +60,6 @@ class TestRunner(InferenceRunner):
         accs = []
         for name, dataloader in self.test_dataloader.items():
             test_exclude_num = self.test_exclude_num[name]
-            save_path = None
             self.backup_metric.reset()
             for tidx, (img, label) in enumerate(dataloader):
                 exclude_num = test_exclude_num if (tidx +

@@ -114,7 +114,7 @@ class BaseDataset(Dataset):
         valid=True
         
         for ch in list(label):
-            #print(state, end=" ")
+           
             if ch in self.symbols:
                 state=0
                 continue
