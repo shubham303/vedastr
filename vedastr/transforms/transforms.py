@@ -1,12 +1,24 @@
 import random
 import re
 
+import PIL.Image
 import albumentations as albu
 import albumentations.augmentations.functional as F
 import cv2
 import numpy as np
 import torch
-from albumentations import DualTransform
+from PIL.Image import Image
+from albumentations import DualTransform, ImageOnlyTransform
+import random
+from straug.blur import GaussianBlur, DefocusBlur, MotionBlur, GlassBlur, ZoomBlur
+import straug
+from straug.camera import Contrast, Brightness, JpegCompression, Pixelate
+from straug.geometry import Rotate, Perspective, Shrink, TranslateX, TranslateY
+from straug.noise import GaussianNoise, ShotNoise, ImpulseNoise, SpeckleNoise
+from straug.pattern import VGrid, HGrid, Grid, RectGrid, EllipseGrid
+from straug.process import Posterize, Solarize, Invert, Equalize, AutoContrast, Sharpness, Color
+from straug.warp import Curve, Distort, Stretch
+from straug.weather import Fog, Snow, Frost, Rain, Shadow
 
 from .registry import TRANSFORMS
 
@@ -663,28 +675,47 @@ class TIA(DualTransform):
 		return src_pts, dst_pts, img_w, img_h
 
 
-"""@TRANSFORMS.register_module
-class SimilarCharacterReplace(DualTransform):
-
-	क़ख़ग़ज़ड़ढ़फ़य़  these characters are almost same as कखगङजयढफ. update labels with this change.
-	Args:
-		c (bool): If True, remove special characters from label.
-
+@TRANSFORMS.register_module
+class StrAug(ImageOnlyTransform):
 	
-	def __init__(self, convert_similar_chars, char_similarity_map):
-		self.convert_similar_chars = convert_similar_chars
-		self.char_similarity_map = char_similarity_map
-		super(SimilarCharacterReplace, self).__init__(always_apply=True)
-	
+	def __init__(self, exclude_list=None,seed=0, prob = 0.3, **kwargs):
+		
+		super(StrAug, self).__init__(**kwargs)
+		self.exclude_list = exclude_list
+		self.prob = prob
+		rng = np.random.default_rng(seed)
+		curve=Curve(rng)
+		self.perspective = [Curve(rng=rng), straug.geometry.Rotate(rng=rng), Perspective(rng), Distort(rng),
+		                   Stretch(rng),
+		       Shrink(rng),
+		       TranslateX(rng),
+		       TranslateY(rng)]
+		self.grid= [VGrid(rng), HGrid(rng), Grid(rng), RectGrid(rng), EllipseGrid(rng)]
+		self.noise=[GaussianNoise(rng), ShotNoise(rng), ImpulseNoise(rng), SpeckleNoise(rng)]
+		self.blur=[GaussianBlur(rng), DefocusBlur(rng), MotionBlur(rng), GlassBlur(rng), ZoomBlur(rng)]
+		#ops.extend([Contrast(rng), Brightness(rng), JpegCompression(rng), Pixelate(rng)])
+		self.fog=[Fog(rng), Snow(rng), Frost(rng), Rain(rng), Shadow(rng)]
+		#ops.extend(
+		#	[Posterize(rng), Solarize(rng), Invert(rng), Equalize(rng), AutoContrast(rng), Sharpness(rng), Color(rng)])
+		self.ops=self.perspective+self.grid+self.noise+self.blur+self.fog
+		
+		
 	def __call__(self, force_apply=False, **kwargs):
-		label = kwargs.get('label')
-		if not self.convert_similar_chars:
-			label = "".join(map(str, [self.char_similarity_map[str(ch)] if str(ch) in self.char_similarity_map else str(ch)
-			                          for ch in
-			                          list(label)]))
-		kwargs.update(label=label)
+		if random.random() >= self.prob:
+			return kwargs
+		
+		img = kwargs['image']
+		op = random.choice(self.ops)
+		if op in self.grid:
+			mag =0
+		elif op in self.noise:
+			mag = random.choice([-1, 0, 1])
+		else:
+			mag = random.choice([-1, 0, 1, 2])
+			
+		img= PIL.Image.fromarray(img)
+		out_img = np.array(op(img, mag=mag))
+		#i = random.randint(0, 1000000)
+		#cv2.imwrite("images/{}_{}.jpg".format(kwargs["label"], i), out_img)
+		kwargs['image']=out_img
 		return kwargs
-	
-	def get_transform_init_args_names(self):
-		return ()
-"""

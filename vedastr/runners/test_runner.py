@@ -42,10 +42,16 @@ class TestRunner(InferenceRunner):
                     if p == l:
                         path =  os.path.join(save_path, "correct/")
                     else:
-                        path= os.path.join(save_path, "incorrect/")
-                    print(p, '\t', l)
+                        import editdistance
+                        d = editdistance.eval(p, l)
+                        path= os.path.join(save_path, "incorrect/{}/".format(d))
+                        
+                    #print(p, '\t', l)
                     cimg = img[idx][0, :, :].cpu().numpy()
                     cimg = (cimg * 0.5) + 0.5
+                    if not os.path.exists(path):
+                        os.mkdir(path)
+                        
                     cv2.imwrite(path + f'/%s_{p}_{l}.png' % idx,
                                 (cimg * 255).astype(np.uint8))
                     
@@ -53,7 +59,7 @@ class TestRunner(InferenceRunner):
             self.metric.measure(pred, prob, label, exclude_num)
             self.backup_metric.measure(pred, prob, label, exclude_num)
             
-    def __call__(self):
+    def __call__(self, save_path):
         self.logger.info('Start testing')
         self.logger.info('test info: %s' % self.postprocess_cfg)
         self.metric.reset()

@@ -98,5 +98,7 @@ class LmdbDataset(BaseDataset):
         if self.transforms:
             aug = self.transforms(image=img, label=label)
             img, label = aug['image'], aug['label']
-
+        
+       # i = random.randint(0,1000000)
+       # cv2.imwrite("images/{}_{}.jpg".format(label, i),img1)
         return img, label
