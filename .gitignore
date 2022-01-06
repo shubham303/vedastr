@@ -123,3 +123,4 @@ workdir/
 tools/workdir
 
 tools/wandb
+wandb/

@@ -1,7 +1,7 @@
 # language specific changes:
-character = 'ऀँंःअआइईउऊऋऌऍएऐऑओऔकखगघङचछजझञटठडढणतथदधनपफबभमयरलळवशषसहऺऻ़ऽािीुूृॄॅेैॉोौ्ॎॐ॒॑॓॔ॖॗॠॡॢॣ।॥०१२३४५६७८९ॲ%/?:,.-'
+character = 'ऀँंःअआइईउऊऋऌऍएऐऑओऔकखगघङचछजझञटठडढणतथदधनपफबभमयरलळवशषसहऺऻऽािीुूृॄॅेैॉोौ्ॎॐ॒॑॓॔ॖॗॠॡॢॣ।॥०१२३४५६७८९ॲ%/?:,.-'
 test_sensitive = False
-test_character = 'ऀँंःअआइईउऊऋऌऍएऐऑओऔकखगघङचछजझञटठडढणतथदधनपफबभमयरलळवशषसहऺऻ़ऽािीुूृॄॅेैॉोौ्ॎॐ॒॑॓॔ॖॗॠॡॢॣ।॥०१२३४५६७८९ॲ'
+test_character = 'ऀँंःअआइईउऊऋऌऍएऐऑओऔकखगघङचछजझञटठडढणतथदधनपफबभमयरलळवशषसहऺऻऽािीुूृॄॅेैॉोौ्ॎॐ॒॑॓॔ॖॗॠॡॢॣ।॥०१२३४५६७८९ॲ'
 batch_max_length = 25
 test_folder_names = ['IIIT']  ###
 data_root = '/usr/datasets/synthetic_text_dataset/lmdb_dataset_Hindi/hindi/'
@@ -16,7 +16,7 @@ V = "ई ऊ ऍ ऐ ऑ ओ औ"
 CH = "अ आ उ ए इ ऌ क  ख  ग ऋ  घ च  छ  ज  झ  ञ  ट  ठ  ड  ढ  ण  त  थ  द  ध  न प  फ  ब  भ  म  य  र ल  ळ व" \
      "श  ष  " \
      "स  ह ॐ ॠ  ॡ"
-v = "ा  ि  ी  ु  ू  ृ  ॄ  ॉ  ो  ौ  ॎ  ॑  ॒  ॓ ़ ॔  ॅ े ै ॆ ्  ॖ   ॗ ॢ  ॣ"
+v = "ा  ि  ी  ु  ू  ृ  ॄ  ॉ  ो  ौ  ॎ  ॑  ॒  ॓ ॔  ॅ े ै ॆ ्  ॖ   ॗ ॢ  ॣ"
 symbols = "।  ॥  ०  १  २  ३  ४  ५  ६  ७  ८  ९ %  /  ?  :  ,  .  -"
 
 # work directory
@@ -37,14 +37,16 @@ n_head = 8
 norm_cfg = dict(type='BN')
 num_characters = len(character) + 2  # extra go and end character.
 num_class = len(character) + 1  # [GO] character is not in prediction list.
-num_mdcdp_layers = 3
+num_mdcdp_layers = 1
 d_model = 512
+batch_norm = dict(type='BN')
+layer_norm = dict(type='LayerNorm', normalized_shape=d_model)
+hidden_dim = d_model
 
 inference = dict(
 	transform=[
 		dict(type='Sensitive', sensitive=sensitive),
 		dict(type='Filter', need_character=character),
-		# dict(type='StrAug', seed=0),
 		dict(type='ToGray'),
 		dict(type='Resize', size=size),
 		dict(type='Normalize', mean=mean, std=std),
@@ -59,61 +61,76 @@ inference = dict(
 	model=dict(
 		type='Cdisnet',
 		vis_module=dict(
-			type="VisualModule",
-			tps=dict(
-				type='RectificatorComponent',
-				from_layer='input',
-				to_layer='rect',
-				arch=dict(
-					type='TPS_STN',
-					F=fiducial_num,
-					input_size=size,
-					output_size=size,
-					stn=dict(
-						feature_extractor=dict(
-							encoder=dict(
-								backbone=dict(
-									type='GBackbone',
-									layers=[
-										dict(type='ConvModule', in_channels=1, out_channels=64,
-										     kernel_size=3, stride=1, padding=1, norm_cfg=norm_cfg),
-										dict(type='MaxPool2d', kernel_size=2, stride=2),
-										dict(type='ConvModule', in_channels=64, out_channels=128,
-										     kernel_size=3, stride=1, padding=1, norm_cfg=norm_cfg),
-										dict(type='MaxPool2d', kernel_size=2, stride=2),
-										dict(type='ConvModule', in_channels=128, out_channels=256,
-										     kernel_size=3, stride=1, padding=1, norm_cfg=norm_cfg),
-										dict(type='MaxPool2d', kernel_size=2, stride=2),
-										dict(type='ConvModule', in_channels=256, out_channels=512,
-										     kernel_size=3, stride=1, padding=1, norm_cfg=norm_cfg),
-									],
-								),
+			type='GBody',
+			pipelines=[
+				dict(
+					type='FeatureExtractorComponent',
+					from_layer='input',
+					to_layer='cnn_feat',
+					arch=dict(
+						encoder=dict(
+							backbone=dict(
+								type='GBackbone',
+								layers=[
+									dict(type='ConvModule', in_channels=1, out_channels=int(hidden_dim / 2),
+									     kernel_size=3, stride=1, padding=1, norm_cfg=batch_norm),  # c0
+									dict(type='MaxPool2d', kernel_size=2, stride=2, padding=0),
+									dict(type='ConvModule', in_channels=int(hidden_dim / 2), out_channels=hidden_dim,
+									     kernel_size=3, stride=1, padding=1, norm_cfg=batch_norm),  # c1
+									dict(type='MaxPool2d', kernel_size=2, stride=2, padding=0),  # c2
+								],
 							),
-							collect=dict(type='CollectBlock', from_layer='c3')
 						),
-						pool=dict(type='AdaptiveAvgPool2d', output_size=1),
-						head=[
-							dict(type='FCModule', in_channels=512, out_channels=256),
-							dict(type='FCModule', in_channels=256, out_channels=fiducial_num * 2, activation=None)
-						],
+						collect=dict(type='CollectBlock', from_layer='c2'),
 					),
 				),
-			),
-			d_input=1,
-			layers=[3, 4, 6, 6, 3],
-			n_layer=3,
-			d_model=d_model,
-			d_inner=1024,
-			n_head=8,
-			d_k=64,
-			d_v=64,
-			dropout=0
+				dict(
+					type='SequenceEncoderComponent',
+					from_layer='cnn_feat',
+					to_layer='src',
+					arch=dict(
+                        type='TransformerEncoder',
+						position_encoder=dict(
+							type='Adaptive2DPositionEncoder',
+							in_channels=hidden_dim,
+							max_h=100,
+							max_w=100,
+							dropout=dropout,
+						),
+						encoder_layer=dict(
+							type='TransformerEncoderLayer2D',
+							attention=dict(
+								type='MultiHeadAttention',
+								in_channels=hidden_dim,
+								k_channels=hidden_dim // n_head,
+								v_channels=hidden_dim // n_head,
+								n_head=n_head,
+								dropout=dropout,
+							),
+							attention_norm=layer_norm,
+							feedforward=dict(
+								type='Feedforward',
+								layers=[
+									dict(type='ConvModule', in_channels=hidden_dim, out_channels=hidden_dim * 4,
+									     kernel_size=3, padding=1,
+									     bias=True, norm_cfg=None, activation='relu', dropout=dropout),
+									dict(type='ConvModule', in_channels=hidden_dim * 4, out_channels=hidden_dim,
+									     kernel_size=3, padding=1,
+									     bias=True, norm_cfg=None, activation=None, dropout=dropout),
+								],
+							),
+							feedforward_norm=layer_norm,
+						),
+						num_layers=n_e,
+					),
+				),
+			],
 		),
 		pos_module=dict(
 			type="PositionalEmbedding",
 			d_onehot=d_model,
 			d_hid=d_model,
-			n_position=200,
+			n_position=num_class,
 			max_seq_len=batch_max_length
 		),
 		sem_module=dict(
@@ -220,7 +237,6 @@ test = dict(
 		transform=[
 			dict(type='Sensitive', sensitive=test_sensitive),
 			dict(type='Filter', need_character=test_character),
-			# dict(type='StrAug', seed=0, prob=0.5),
 			dict(type='ToGray'),
 			dict(type='Resize', size=size),
 			dict(type='Normalize', mean=mean, std=std),
@@ -317,9 +333,9 @@ train = dict(
 	                  warmup_epochs=0.1,
 	                  ),
 	max_epochs=max_epochs,
-	log_interval=10,
-	trainval_ratio=4000,
-	max_iterations_val=300,  # 10 percent of train_val ratio.
+	log_interval=50,
+	trainval_ratio=5000,
+	max_iterations_val=500,  # 10 percent of train_val ratio.
 	snapshot_interval=5000,
 	save_best=True,
 	# resume=dict(checkpoint = "/home/shubham/Documents/MTP/text-recognition-models/vedastr/workdir/cdisnet_devanagari
