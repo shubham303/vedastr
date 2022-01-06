@@ -79,7 +79,7 @@ class BaseDataset(Dataset):
         character = "".join(sorted(self.character, key=lambda x: ord(x)))
         out_of_char = f'[^{character}]'
         # replace those character not in self.character with ''
-        label = re.sub(out_of_char, '', label.lower())
+        #label = re.sub(out_of_char, '', label.lower())   # remove labels which contain character not in self.character
         
         # filter whose label larger than batch_max_length
         if len(label) > self.batch_max_length or not self.is_valid_label(label):
@@ -106,15 +106,20 @@ class BaseDataset(Dataset):
         return self.samples
 
     def is_valid_label(self, label):
-        
+        #ref https://www.unicode.org/L2/L2016/16161-indic-text-seg.pdf
         if not self.filter_invalid_indic_labels:
             return True
+        
+        
         
         state = 0
         valid=True
         
         for ch in list(label):
-           
+            
+            if not ( ch in self.v or ch in self.m or ch in self.V or ch in self.CH or ch in self.symbols):
+                return False
+            
             if ch in self.symbols:
                 state=0
                 continue

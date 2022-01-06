@@ -1,7 +1,7 @@
 # language specific changes:
-character = 'ऀँंःअआइईउऊऋऌऍएऐऑओऔकखगघङचछजझञटठडढणतथदधनपफबभमयरलळवशषसहऺऻऽािीुूृॄॅेैॉोौ्ॎॐ॒॑॓॔ॖॗॠॡॢॣ।॥०१२३४५६७८९ॲ%/?:,.-'
+character = 'ऀँंःअआइईउऊऋऌऍएऐऑओऔकखगघङचछजझञटठडढणतथदधनपफबभमयरलळवशषसहऺऻ़ऽािीुूृॄॅेैॉोौ्ॎॐ॒॑॓॔ॖॗॠॡॢॣ।॥०१२३४५६७८९ॲ%/?:,.-'
 test_sensitive = False
-test_character = 'ऀँंःअआइईउऊऋऌऍएऐऑओऔकखगघङचछजझञटठडढणतथदधनपफबभमयरलळवशषसहऺऻऽािीुूृॄॅेैॉोौ्ॎॐ॒॑॓॔ॖॗॠॡॢॣ।॥०१२३४५६७८९ॲ'
+test_character = 'ऀँंःअआइईउऊऋऌऍएऐऑओऔकखगघङचछजझञटठडढणतथदधनपफबभमयरलळवशषसहऺऻ़ऽािीुूृॄॅेैॉोौ्ॎॐ॒॑॓॔ॖॗॠॡॢॣ।॥०१२३४५६७८९ॲ'
 batch_max_length = 25
 test_folder_names = ['IIIT']  ###
 data_root = '/usr/datasets/synthetic_text_dataset/lmdb_dataset_Hindi/hindi/'
@@ -16,7 +16,7 @@ V = "ई ऊ ऍ ऐ ऑ ओ औ"
 CH = "अ आ उ ए इ ऌ क  ख  ग ऋ  घ च  छ  ज  झ  ञ  ट  ठ  ड  ढ  ण  त  थ  द  ध  न प  फ  ब  भ  म  य  र ल  ळ व" \
      "श  ष  " \
      "स  ह ॐ ॠ  ॡ"
-v = "ा  ि  ी  ु  ू  ृ  ॄ  ॉ  ो  ौ  ॎ  ॑  ॒  ॓ ॔  ॅ े ै ॆ ्  ॖ   ॗ ॢ  ॣ"
+v = "ा  ि  ी  ु  ू  ृ  ॄ  ॉ  ो  ौ  ॎ  ॑  ॒  ॓ ़ ॔  ॅ े ै ॆ ्  ॖ   ॗ ॢ  ॣ"
 symbols = "।  ॥  ०  १  २  ३  ४  ५  ६  ७  ८  ९ %  /  ?  :  ,  .  -"
 
 # work directory
@@ -44,6 +44,7 @@ inference = dict(
 	transform=[
 		dict(type='Sensitive', sensitive=sensitive),
 		dict(type='Filter', need_character=character),
+		# dict(type='StrAug', seed=0),
 		dict(type='ToGray'),
 		dict(type='Resize', size=size),
 		dict(type='Normalize', mean=mean, std=std),
@@ -219,6 +220,7 @@ test = dict(
 		transform=[
 			dict(type='Sensitive', sensitive=test_sensitive),
 			dict(type='Filter', need_character=test_character),
+			# dict(type='StrAug', seed=0, prob=0.5),
 			dict(type='ToGray'),
 			dict(type='Resize', size=size),
 			dict(type='Normalize', mean=mean, std=std),
@@ -315,9 +317,9 @@ train = dict(
 	                  warmup_epochs=0.1,
 	                  ),
 	max_epochs=max_epochs,
-	log_interval=50,
-	trainval_ratio=5000,
-	max_iterations_val=500,  # 10 percent of train_val ratio.
+	log_interval=10,
+	trainval_ratio=4000,
+	max_iterations_val=300,  # 10 percent of train_val ratio.
 	snapshot_interval=5000,
 	save_best=True,
 	# resume=dict(checkpoint = "/home/shubham/Documents/MTP/text-recognition-models/vedastr/workdir/cdisnet_devanagari

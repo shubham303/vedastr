@@ -56,10 +56,6 @@ def is_valid_label(label):
 
 
 if __name__ == "__main__":
-	label = "'इंगेजमेंंट'"
-	print(list(label))
-	char_similarity_map = {"क़": "क", "ख़": "ख", "ग़": "ग", "ज़": "ज", "ड़": "ड", "ढ़": "ढ", "फ़": "फ", "य़": "य", "ङ":"ड"}
-	label = "".join(map(str, [char_similarity_map [str(ch)] if str(ch) in char_similarity_map else str(ch) for ch in
-	                          list(label)]))
-	print(len(list(label)))
-	print(is_valid_label("'इंगेजमेंंट'"))\
+	s='ताऱ्यामुळे'
+	print(list(s))
+	
