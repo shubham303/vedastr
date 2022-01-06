@@ -121,3 +121,5 @@ workdir/
 *.pth
 
 tools/workdir
+
+tools/wandb

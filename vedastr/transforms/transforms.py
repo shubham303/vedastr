@@ -701,21 +701,24 @@ class StrAug(ImageOnlyTransform):
 		
 		
 	def __call__(self, force_apply=False, **kwargs):
+		
 		if random.random() >= self.prob:
 			return kwargs
-		
-		img = kwargs['image']
-		op = random.choice(self.ops)
-		if op in self.grid:
-			mag =0
-		elif op in self.noise:
-			mag = random.choice([-1, 0, 1])
-		else:
-			mag = random.choice([-1, 0, 1, 2])
-			
-		img= PIL.Image.fromarray(img)
-		out_img = np.array(op(img, mag=mag))
-		#i = random.randint(0, 1000000)
-		#cv2.imwrite("images/{}_{}.jpg".format(kwargs["label"], i), out_img)
-		kwargs['image']=out_img
+		try:
+			img = kwargs['image']
+			op = random.choice(self.ops)
+			if op in self.grid:
+				mag =0
+			elif op in self.noise:
+				mag = random.choice([-1, 0, 1])
+			else:
+				mag = random.choice([-1, 0, 1, 2])
+				
+			img= PIL.Image.fromarray(img)
+			out_img = np.array(op(img, mag=mag))
+			#i = random.randint(0, 1000000)
+			#cv2.imwrite("images/{}_{}.jpg".format(kwargs["label"], i), out_img)
+			kwargs['image']=out_img
+		except Exception:
+			print("error occurred during straug transform")
 		return kwargs

@@ -10,13 +10,15 @@ from ..optimizers import build_optimizer
 from ..utils import save_checkpoint, gather_tensor
 
 
+
 class TrainRunner(InferenceRunner):
 
-    def __init__(self, train_cfg, inference_cfg, common_cfg=None):
+    def __init__(self, train_cfg, inference_cfg, common_cfg=None, wandb=None):
         super(TrainRunner, self).__init__(inference_cfg, common_cfg)
-
+        
         self.train_dataloader = self._build_dataloader(
             train_cfg['data']['train'])
+
         assert isinstance(self.train_dataloader, tud.DataLoader), \
             "Only support single dataloader in training phase. " \
             "Check the type of dataset please. " \
@@ -64,6 +66,8 @@ class TrainRunner(InferenceRunner):
 
         if train_cfg.get('resume'):
             self.resume(**train_cfg['resume'])
+            
+        self.wandb = wandb
 
     def _build_optimizer(self, cfg):
         return build_optimizer(cfg, dict(params=self.model.parameters()))
@@ -107,11 +111,14 @@ class TrainRunner(InferenceRunner):
             self.save_model(out_dir=self.workdir, filename='best_norm.pth')
         self.logger.info('Validate, best_acc %.4f, best_edit %s' %
                          (self.best_acc, self.best_norm))
+        
         self.logger.info(
             'Validate, acc %.4f, edit %s' %
             (self.metric.avg['acc']['true'], self.metric.avg['edit']))
         self.logger.info(f'\n{self.metric.predict_example_log}')
-
+        if self.wandb:
+            self.wandb.log({'val_accuracy': self.metric.avg['acc']['true'], 'val_edit_dist': self.metric.avg['edit']})
+        
     def _train_batch(self, img, label):
         self.model.train()
 
@@ -148,6 +155,9 @@ class TrainRunner(InferenceRunner):
                    self.metric.avg['acc']['true'], self.metric.avg['edit']))
 
             self.logger.info(f'\n{self.metric.predict_example_log}')
+            if self.wandb:
+                self.wandb.log({'train_accuracy': self.metric.avg['acc']['true'], 'train_edit_dist': self.metric.avg[
+                    'edit'], 'train_loss': gather_loss.item()})
 
     def _validate_batch(self, img, label, exclude_num):
         self.model.eval()

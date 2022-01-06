@@ -4,9 +4,9 @@ test_sensitive = False
 test_character = 'ऀँंऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ०१२३४५६७८९ॲ'
 batch_max_length = 25
 test_folder_names = ['IIIT']  ###
-#data_root = '/usr/datasets/synthetic_text_dataset/lmdb_dataset_Hindi/hindi/'
+data_root = '/usr/datasets/synthetic_text_dataset/lmdb_dataset_Hindi/hindi/'
 #data_root = '/home/ocr/datasets/recognition/hindi/'
-data_root="/home/ocr/dataset/recognition/hindi"
+#data_root=""
 validation_folder_names = ['MJ_valid', "ST_valid"]
 mj_folder_names = ['MJ_test', 'MJ_train']
 
@@ -37,6 +37,8 @@ n_head = 8
 norm_cfg = dict(type='BN')
 num_characters = len(character) + 2  # extra go and end character.
 num_class = len(character) + 1  # [GO] character is not in prediction list.
+num_mdcdp_layers =3
+d_model = 512
 
 inference = dict(
 	transform=[
@@ -100,7 +102,7 @@ inference = dict(
 			d_input=1,
 			layers=[3, 4, 6, 6, 3],
 			n_layer=3,
-			d_model=512,
+			d_model=d_model,
 			d_inner=1024,
 			n_head=8,
 			d_k=64,
@@ -109,14 +111,14 @@ inference = dict(
 		),
 		pos_module=dict(
 			type="PositionalEmbedding",
-			d_onehot=512,
-			d_hid=512,
+			d_onehot=d_model,
+			d_hid=d_model,
 			n_position=200,
 			max_seq_len=batch_max_length
 		),
 		sem_module=dict(
 			type="SemanticEmbedding",
-			d_model=512,
+			d_model=d_model,
 			rnn_layers=2,
 			rnn_dropout=0,
 			d_k=64,
@@ -128,23 +130,23 @@ inference = dict(
 		mdcdp_layers=[dict(
 			type="MDCDP",
 			n_layer_sae=1,
-			d_model_sae=512,
+			d_model_sae=d_model,
 			d_inner_sae=1024,
 			n_head_sae=8,
 			d_k_sae=64,
 			d_v_sae=64,
 			n_layer=3,
-			d_model=512,
-			d_inner=512,
+			d_model=d_model,
+			d_inner=d_model,
 			n_head=8,
 			d_k=64,
 			d_v=64,
 			dropout=0
-		) for i in range(0, 3)],
+		) for i in range(0, num_mdcdp_layers)],
 		
 		need_text=True,
 		max_seq_len=batch_max_length + 1,
-		d_model=512,
+		d_model=d_model,
 		num_class=num_class
 	),
 	postprocess=dict(
@@ -308,7 +310,7 @@ train = dict(
 			transform=test['data']['transform'],
 		),
 	),
-	optimizer=dict(type='Adam', lr=0.0003),
+	optimizer=dict(type='Adam', lr=0.001, weight_decay=0),
 	criterion=dict(type='CrossEntropyLoss'),
 	lr_scheduler=dict(type='CosineLR',
 	                  iter_based=True,
@@ -320,7 +322,8 @@ train = dict(
 	max_iterations_val=300,  # 10 percent of train_val ratio.
 	snapshot_interval=5000,
 	save_best=True,
-	resume=dict(checkpoint = "/home/ocr/cdisnet_devanagari/best_acc.pth")
-	#resume=None
+	#resume=dict(checkpoint = "/home/shubham/Documents/MTP/text-recognition-models/vedastr/workdir/cdisnet_devanagari
+	# /best_acc.pth")
+	resume=None
 )
 
