@@ -7,6 +7,7 @@ import torch.nn.functional as F
 from .base import Common
 from ..converter import build_converter
 from ..models import build_model
+from ..models.srn.model.srn_model import SRNModel
 from ..utils import load_checkpoint
 
 
@@ -30,7 +31,7 @@ class InferenceRunner(Common):
     def _build_model(self, cfg):
         self.logger.info('Build model')
 
-        model = build_model(cfg)
+        model = SRNModel(512, 121, 25 , 8 ,2, 4, 512)
         params_num = []
         for p in filter(lambda p: p.requires_grad, model.parameters()):
             params_num.append(np.prod(p.size()))

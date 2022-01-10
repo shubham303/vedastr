@@ -2,6 +2,7 @@ import os.path as osp
 
 import torch
 import torch.utils.data as tud
+from timm.utils import AverageMeter
 
 from .inference_runner import InferenceRunner
 from ..criteria import build_criterion
@@ -69,6 +70,12 @@ class TrainRunner(InferenceRunner):
             
         self.wandb = wandb
 
+        self.losses = AverageMeter()
+        self.pvam_loss = AverageMeter()
+        self.vsfd_loss = AverageMeter()
+        self.batch_size = train_cfg["data"]["train"]["dataloader"]["samples_per_gpu"]
+        
+
     def _build_optimizer(self, cfg):
         return build_optimizer(cfg, dict(params=self.model.parameters()))
 
@@ -123,6 +130,8 @@ class TrainRunner(InferenceRunner):
         self.model.train()
 
         self.optimizer.zero_grad()
+        
+      
 
         label_input, label_len, label_target = self.converter.train_encode(label)  # noqa 501
         if self.use_gpu:
@@ -131,13 +140,22 @@ class TrainRunner(InferenceRunner):
             label_target = label_target
             label_len = label_len
         if self.need_text:
-            pred = self.model((img, label_input))
+            pred , loss = self.model(img, label_input)
         else:
-            pred = self.model((img,))
-        loss = self.criterion(pred, label_target, label_len, img.shape[0])
-        all_loss = gather_tensor(loss.detach())
-        gather_loss = torch.mean(all_loss)
-        loss.backward()
+            pred , loss = self.model((img,))
+        #loss = self.criterion(pred, label_target, label_len, img.shape[0])
+        #all_loss = gather_tensor(loss.detach())
+        #gather_loss = torch.mean(all_loss)
+        #loss.backward()
+        
+        total_loss = loss["loss"]
+        pred= pred["predict"]
+        #gt = label_target.cpu().numpy()[0]
+        self.optimizer.zero_grad()
+        total_loss.backward()
+        self.losses.update(total_loss.item(), self.batch_size)
+        self.pvam_loss.update(loss["pvam_loss"].item(), self.batch_size)
+        self.vsfd_loss.update(loss["vsfd_loss"].item(), self.batch_size)
         if self.grad_clip != 0:
             torch.nn.utils.clip_grad_norm_(self.model.parameters(),
                                            self.grad_clip)
@@ -151,13 +169,13 @@ class TrainRunner(InferenceRunner):
             self.logger.info(
                 'Train, Epoch %d, Iter %d, LR %s, Loss %.4f, '
                 'acc %.4f, edit_distance %s'
-                % (self.epoch, self.iter, self.lr, gather_loss.item(),
+                % (self.epoch, self.iter, self.lr, total_loss.item(),
                    self.metric.avg['acc']['true'], self.metric.avg['edit']))
 
             self.logger.info(f'\n{self.metric.predict_example_log}')
             if self.wandb:
                 self.wandb.log({'train_accuracy': self.metric.avg['acc']['true'], 'train_edit_dist': self.metric.avg[
-                    'edit'], 'train_loss': gather_loss.item()})
+                    'edit'], 'train_loss': total_loss.item()})
 
     def _validate_batch(self, img, label, exclude_num):
         self.model.eval()
