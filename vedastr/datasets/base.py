@@ -79,7 +79,7 @@ class BaseDataset(Dataset):
         character = "".join(sorted(self.character, key=lambda x: ord(x)))
         out_of_char = f'[^{character}]'
         # replace those character not in self.character with ''
-        #label = re.sub(out_of_char, '', label.lower())   # remove labels which contain character not in self.character
+        label = re.sub(out_of_char, '', label.lower())   # remove labels which contain character not in self.character
         
         # filter whose label larger than batch_max_length
         if len(label) > self.batch_max_length or not self.is_valid_label(label):
