@@ -1,12 +1,12 @@
 #language specific changes:
-character = 'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗॠ०१२३४५६७८९ॲ%/?:,.-'
+character = 'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗॠ०१२३४५६७८९ॲ'
 test_sensitive = False
 test_character = 'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗॠ०१२३४५६७८९ॲ'
 batch_max_length = 35
 test_folder_names = ['IIIT']  ###
 #data_root = '/usr/datasets/synthetic_text_dataset/lmdb_dataset_Hindi/hindi/'
 data_root = '/home/ocr/datasets/recognition/hindi/'
-validation_folder_names=['MJ_valid', "ST_valid"]
+validation_folder_names = ["IIIT",  "kaggle_train" , "kaggle_val"]
 mj_folder_names = ['MJ_test', 'MJ_train']
 
 m = "ऀ  ँ ं ः  ॕ "
@@ -279,7 +279,7 @@ train_dataset_mj = [dict(type='LmdbDataset', root=train_root_mj + folder_name)
 train_dataset_st = [dict(type='LmdbDataset', root=train_root_st)]
 
 # valid
-valid_root = data_root + 'validation/'
+valid_root = data_root + 'evaluation/'
 valid_dataset = [dict(type='LmdbDataset', root=valid_root+folder_name, **test_dataset_params)for folder_name in validation_folder_names]
 
 train_transforms = [
@@ -341,7 +341,7 @@ train = dict(
 			transform=test['data']['transform'],
 		),
 	),
-	optimizer=dict(type='Adam', lr=3e-4),
+	optimizer=dict(type='Adam', lr=0.001),
 	criterion=dict(type='CrossEntropyLoss'),
 	lr_scheduler=dict(type='CosineLR',
 	                  iter_based=True,
@@ -350,8 +350,8 @@ train = dict(
 	max_epochs=max_epochs,
 	log_interval=10,
 	trainval_ratio=2000,
-	max_iterations_val = 200,
-	snapshot_interval=5000,
+	max_iterations_val = 1000,
+	snapshot_interval=20000,
 	save_best=True,
 	resume=None,
 )
