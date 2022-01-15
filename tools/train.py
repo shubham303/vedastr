@@ -59,12 +59,11 @@ def main():
 			"num_mdcdp_layers" : cfg["num_mdcdp_layers"],
 			"d_model" : cfg["d_model"],
 		}
-		
 		wandb.init(project=args.wandb, entity="cs20m064", config=config)
-		
-		
 		runner = TrainRunner(train_cfg, inference_cfg, common_cfg, wandb)
+		
 	else:
+		print("wandb logging not active")
 		runner= TrainRunner(train_cfg, inference_cfg, common_cfg)
 		
 	runner()
