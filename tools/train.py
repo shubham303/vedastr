@@ -48,7 +48,7 @@ def main():
 	common_cfg['workdir'] = workdir
 	common_cfg['distribute'] = args.distribute
 	if args.wandb:
-		config={
+		"""config={
 			"learning_rate" : train_cfg["optimizer"]["lr"],
 			"dropout" : cfg["dropout"],
 			"optimizer" : train_cfg["optimizer"]["type"],
@@ -58,8 +58,8 @@ def main():
 			"batch_size" : cfg["samples_per_gpu"],
 			"num_mdcdp_layers" : cfg["num_mdcdp_layers"],
 			"d_model" : cfg["d_model"],
-		}
-		wandb.init(project=args.wandb, entity="cs20m064", config=config)
+		}"""
+		wandb.init(project=args.wandb, entity="cs20m064")
 		runner = TrainRunner(train_cfg, inference_cfg, common_cfg, wandb)
 		
 	else:
