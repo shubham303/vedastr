@@ -350,9 +350,9 @@ train = dict(
 	                  ),
 	max_epochs=max_epochs,
 	log_interval=10,
-	trainval_ratio=500,
+	trainval_ratio=1000,
 	max_iterations_val = 500,
-	snapshot_interval=10000,
+	snapshot_interval=5000,
 	save_best=True,
 	resume=None,
 )
