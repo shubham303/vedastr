@@ -6,8 +6,7 @@ batch_max_length = 25
 test_folder_names = ['IIIT']  ###
 #data_root = '/usr/datasets/synthetic_text_dataset/lmdb_dataset_Hindi/hindi/'
 data_root = '/home/ocr/datasets/recognition/hindi/'
-#data_root='/nlsasfs/home/ai4bharat/shubhamr/recognition-dataset/hindi/'
-validation_folder_names = ["IIIT",  "kaggle_train" , "kaggle_val"]
+validation_folder_names=['MJ_valid', "ST_valid"]
 mj_folder_names = ['MJ_test', 'MJ_train']
 
 m = "ऀ  ँ ं ः  ॕ "
@@ -30,10 +29,11 @@ samples_per_gpu = 64
 size = (32, 100)
 mean, std = 0.5, 0.5
 sensitive = True
+
 dropout = 0.1
-n_e = 12
-n_d = 6
-hidden_dim = 512
+n_e = 9
+n_d = 3
+hidden_dim = 256
 n_head = 8
 batch_norm = dict(type='BN')
 layer_norm = dict(type='LayerNorm', normalized_shape=hidden_dim)
@@ -350,9 +350,9 @@ train = dict(
 	                  ),
 	max_epochs=max_epochs,
 	log_interval=10,
-	trainval_ratio=2000,
-	max_iterations_val = 1000,
-	snapshot_interval=20000,
+	trainval_ratio=500,
+	max_iterations_val = 500,
+	snapshot_interval=10000,
 	save_best=True,
 	resume=None,
 )

@@ -313,9 +313,9 @@ train = dict(
 	                  ),
 	max_epochs=max_epochs,
 	log_interval=10,
-	trainval_ratio=2000,
+	trainval_ratio=500,
 	max_iterations_val=500,  # 10 percent of train_val ratio.
-	snapshot_interval=20000,
+	snapshot_interval=10000,
 	save_best=True,
 	#resume=dict(checkpoint = "/home/shubham/Documents/MTP/text-recognition-models/vedastr/workdir/cdisnet_devanagari
 	# /iter20000.pth")
