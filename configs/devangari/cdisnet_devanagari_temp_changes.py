@@ -172,7 +172,7 @@ common = dict(
 ###############################################################################
 dataset_params = dict(
 	batch_max_length=batch_max_length,
-	data_filter=False,
+	data_filter=True,
 	character=character,
 	filter_invalid_indic_labels=True,
 	CH=CH,
@@ -183,7 +183,7 @@ dataset_params = dict(
 )
 test_dataset_params = dict(
 	batch_max_length=batch_max_length,
-	data_filter=False,
+	data_filter=True,
 	character=test_character,
 	filter_invalid_indic_labels=True,
 	CH=CH,
