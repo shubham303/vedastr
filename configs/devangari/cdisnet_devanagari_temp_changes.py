@@ -4,8 +4,8 @@ test_sensitive = False
 test_character = 'ऀँंऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ०१२३४५६७८९ॲ'
 batch_max_length = 25
 test_folder_names = ['IIIT']  ###
-data_root = '/usr/datasets/synthetic_text_dataset/lmdb_dataset_Hindi/hindi/'
-#data_root = '/home/ocr/datasets/recognition/hindi/'
+#data_root = '/usr/datasets/synthetic_text_dataset/lmdb_dataset_Hindi/hindi/'
+data_root = '/home/ocr/datasets/recognition/hindi/'
 validation_folder_names = ["IIIT",  "kaggle_train" , "kaggle_val"]
 mj_folder_names = ['MJ_test', 'MJ_train']
 
