@@ -10,15 +10,16 @@ import torch
 from PIL.Image import Image
 from albumentations import DualTransform, ImageOnlyTransform
 import random
-from straug.blur import GaussianBlur, DefocusBlur, MotionBlur, GlassBlur, ZoomBlur
+"""from straug.blur import GaussianBlur, DefocusBlur, MotionBlur, GlassBlur, ZoomBlur
 import straug
-from straug.camera import Contrast, Brightness, JpegCompression, Pixelate
-from straug.geometry import Rotate, Perspective, Shrink, TranslateX, TranslateY
+from straug.camera import Contrast, Brightness, JpegCompression, Pixelate"""
+"""from straug.geometry import Rotate, Perspective, Shrink, TranslateX, TranslateY
 from straug.noise import GaussianNoise, ShotNoise, ImpulseNoise, SpeckleNoise
 from straug.pattern import VGrid, HGrid, Grid, RectGrid, EllipseGrid
 from straug.process import Posterize, Solarize, Invert, Equalize, AutoContrast, Sharpness, Color
 from straug.warp import Curve, Distort, Stretch
 from straug.weather import Fog, Snow, Frost, Rain, Shadow
+"""
 
 from .registry import TRANSFORMS
 
@@ -674,7 +675,7 @@ class TIA(DualTransform):
 			])
 		return src_pts, dst_pts, img_w, img_h
 
-
+"""
 @TRANSFORMS.register_module
 class StrAug(ImageOnlyTransform):
 	
@@ -722,3 +723,4 @@ class StrAug(ImageOnlyTransform):
 		except Exception:
 			print("error occurred during straug transform")
 		return kwargs
+"""
