@@ -63,7 +63,7 @@ def main():
 		runner = TrainRunner(train_cfg, inference_cfg, common_cfg, wandb)
 		
 	else:
-		print("wandb logging not active")
+		print("wandb project name not passed in arguments")
 		runner= TrainRunner(train_cfg, inference_cfg, common_cfg)
 		
 	runner()
