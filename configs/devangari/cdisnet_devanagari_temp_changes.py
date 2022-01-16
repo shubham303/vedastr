@@ -315,9 +315,9 @@ train = dict(
 	log_interval=10,
 	trainval_ratio=500,
 	max_iterations_val=500,  # 10 percent of train_val ratio.
-	snapshot_interval=10000,
+	snapshot_interval=5000,
 	save_best=True,
-	#resume=dict(checkpoint = "/home/shubham/Documents/MTP/text-recognition-models/vedastr/workdir/cdisnet_devanagari
-	# /iter20000.pth")
-	resume=None
+	resume=dict(checkpoint = "/nlsasfs/home/ai4bharat/shubhamr/programs/vedastr/workdir"
+	                         "/cdisnet_devanagari_temp_changes/best_acc.pth")
+	#resume=None
 )
