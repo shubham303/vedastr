@@ -317,7 +317,6 @@ train = dict(
 	max_iterations_val=500,  # 10 percent of train_val ratio.
 	snapshot_interval=5000,
 	save_best=True,
-	resume=dict(checkpoint = "/nlsasfs/home/ai4bharat/shubhamr/programs/vedastr/workdir"
-	                         "/cdisnet_devanagari_temp_changes/best_acc.pth")
+	resume=dict(checkpoint = "/nlsasfs/home/ai4bharat/shubhamr/programs/vedastr/workdir/cdisnet_devanagari_temp_changes/best_acc.pth")
 	#resume=None
 )
