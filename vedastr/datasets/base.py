@@ -107,6 +107,8 @@ class BaseDataset(Dataset):
 
     def is_valid_label(self, label):
         #ref https://www.unicode.org/L2/L2016/16161-indic-text-seg.pdf
+        return True  #TODO temproray change
+        
         if not self.filter_invalid_indic_labels:
             return True
         
