@@ -1,25 +1,33 @@
 #language specific changes:
-character = 'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗॠ०१२३४५६७८९ॲ%/?:,.-'
+character = 'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗॠ०१२३४५६७८९ॲ'
 test_sensitive = False
 test_character = 'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗॠ०१२३४५६७८९ॲ'
-batch_max_length = 35
-test_folder_names = ["7"]  ###
+batch_max_length = 25
+test_folder_names = ['IIIT']  ###
 data_root = '/usr/datasets/synthetic_text_dataset/lmdb_dataset_Hindi/hindi/'
 #data_root = '/home/ocr/datasets/recognition/hindi/'
-validation_folder_names=['MJ_valid', "ST_valid"]
+validation_folder_names= ["IIIT",  "kaggle_train" , "kaggle_val"]
 mj_folder_names = ['MJ_test', 'MJ_train']
+
+m = "ऀ  ँ ं ः  ॕ "
+V = "ऄ ई ऊ ऍ  ऎ ऐ ऑ ऒ ओ औ"
+CH = "अ आ उ ए इ ऌ क  ख  ग ऋ  घ  ङ  च  छ  ज  झ  ञ  ट  ठ  ड  ढ  ण  त  थ  द  ध  न  ऩ  प  फ  ब  भ  म  य  र  ऱ  ल  ळ  ऴ  व  " \
+     "श  ष  " \
+     "स  ह ॐ क़  ख़  ग़  ज़  ड़  ढ़  फ़  य़  ॠ  ॡ"
+v = "ा  ि  ी  ु  ू  ृ  ॄ  ॉ  ॊ  ो  ौ  ॎ  ॏ ॑  ॒  ॓ ़ ॔  ॅ े ै ॆ ्  ॖ   ॗ ॢ  ॣ"
+symbols = "।  ॥  ०  १  २  ३  ४  ५  ६  ७  ८  ९ %  /  ?  :  ,  .  -"
+
 
 # language specific chanage end here.
 
 # work directory
 root_workdir = 'workdir'
 # sample_per_gpu
-samples_per_gpu = 64
+samples_per_gpu = 4
 ###############################################################################
 # 1. inference
 size = (32, 100)
 mean, std = 0.5, 0.5
-
 sensitive = True
 
 dropout = 0.1
@@ -39,7 +47,9 @@ inference = dict(
 		dict(type='ToGray'),
 		dict(type='Resize', size=size),
 		dict(type='Normalize', mean=mean, std=std),
+		#dict(type='Rotate'),
 		dict(type='ToTensor'),
+		
 	],
 	converter=dict(
 		type='AttnConverter',
@@ -49,7 +59,7 @@ inference = dict(
 	),
 	model=dict(
 		type='GModel',
-		need_text=True,
+		need_text=False,
 		body=dict(
 			type='GBody',
 			pipelines=[
@@ -117,62 +127,12 @@ inference = dict(
 			],
 		),
 		head=dict(
-			type='TransformerHead',
-			src_from='src',
-			num_steps=num_steps,
-			pad_id=num_class,
-			decoder=dict(
-				type='TransformerDecoder',
-				position_encoder=dict(
-					type='PositionEncoder1D',
-					in_channels=hidden_dim,
-					max_len=100,
-					dropout=dropout,
-				),
-				decoder_layer=dict(
-					type='TransformerDecoderLayer1D',
-					self_attention=dict(
-						type='MultiHeadAttention',
-						in_channels=hidden_dim,
-						k_channels=hidden_dim // n_head,
-						v_channels=hidden_dim // n_head,
-						n_head=n_head,
-						dropout=dropout,
-					),
-					self_attention_norm=layer_norm,
-					attention=dict(
-						type='MultiHeadAttention',
-						in_channels=hidden_dim,
-						k_channels=hidden_dim // n_head,
-						v_channels=hidden_dim // n_head,
-						n_head=n_head,
-						dropout=dropout,
-					),
-					attention_norm=layer_norm,
-					feedforward=dict(
-						type='Feedforward',
-						layers=[
-							dict(type='FCModule', in_channels=hidden_dim, out_channels=hidden_dim * 4, bias=True,
-							     activation='relu', dropout=dropout),
-							dict(type='FCModule', in_channels=hidden_dim * 4, out_channels=hidden_dim, bias=True,
-							     activation=None, dropout=dropout),
-						],
-					),
-					feedforward_norm=layer_norm,
-				),
-				num_layers=n_d,
-			),
-			generator=dict(
-				type='Linear',
-				in_features=hidden_dim,
-				out_features=num_class,
-			),
-			embedding=dict(
-				type='Embedding',
-				num_embeddings=num_class + 1,
-				embedding_dim=hidden_dim,
-				padding_idx=num_class,
-			),
+			type='FCHead',
+			in_channels=hidden_dim,
+			out_channels= 4*hidden_dim,
+			num_class=num_class,
+			from_layer="src",
+			batch_max_length=batch_max_length
 		),
 	),
 	postprocess=dict(
@@ -201,13 +161,25 @@ common = dict(
 ###############################################################################
 dataset_params = dict(
 	batch_max_length=batch_max_length,
-	data_filter=False,
+	data_filter=True,
 	character=character,
+	filter_invalid_indic_labels=True,
+	CH=CH,
+	V=V,
+	v=v,
+	m=m,
+	symbols=symbols,
 )
 test_dataset_params = dict(
 	batch_max_length=batch_max_length,
-	data_filter=False,
+	data_filter=True,
 	character=test_character,
+	filter_invalid_indic_labels=True,
+	CH=CH,
+	V=V,
+	v=v,
+	m=m,
+	symbols=symbols,
 )
 
 # data_root = './data/data_lmdb_release/'
@@ -258,7 +230,7 @@ train_dataset_mj = [dict(type='LmdbDataset', root=train_root_mj + folder_name)
 train_dataset_st = [dict(type='LmdbDataset', root=train_root_st)]
 
 # valid
-valid_root = data_root + 'validation/'
+valid_root = data_root + 'evaluation/'
 valid_dataset = [dict(type='LmdbDataset', root=valid_root+folder_name, **test_dataset_params)for folder_name in validation_folder_names]
 
 train_transforms = [
@@ -320,7 +292,7 @@ train = dict(
 			transform=test['data']['transform'],
 		),
 	),
-	optimizer=dict(type='Adam', lr=3e-4),
+	optimizer=dict(type='Adam', lr=0.001),
 	criterion=dict(type='CrossEntropyLoss'),
 	lr_scheduler=dict(type='CosineLR',
 	                  iter_based=True,
@@ -328,8 +300,8 @@ train = dict(
 	                  ),
 	max_epochs=max_epochs,
 	log_interval=10,
-	trainval_ratio=2000,
-	max_iterations_val = 200,
+	trainval_ratio=1000,
+	max_iterations_val = 500,
 	snapshot_interval=5000,
 	save_best=True,
 	resume=None,
