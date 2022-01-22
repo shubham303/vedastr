@@ -38,7 +38,8 @@ class Cdisnet(nn.Module):
         self.vis_module = build_body(vis_module)
         self.pos_module =build_body(pos_module)
         self.sem_module = build_body(sem_module)
-        self.mdcdp_layers  = nn.ModuleList([build_body(mdcdp) for mdcdp in mdcdp_layers])
+        mdcdp_layer= build_body(mdcdp_layers[0])
+        self.mdcdp_layers  = nn.ModuleList([mdcdp_layer for mdcdp in mdcdp_layers])
         self.linear = nn.Linear(d_model,num_class)
         self.max_seq_len = max_seq_len
 

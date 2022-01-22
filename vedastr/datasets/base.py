@@ -6,7 +6,7 @@ import re
 
 import cv2
 from torch.utils.data import Dataset
-
+from abfn import abfn
 
 class BaseDataset(Dataset):
     """
@@ -29,13 +29,7 @@ class BaseDataset(Dataset):
                  transform=None,
                  character: str = 'abcdefghijklmnopqrstuvwxyz0123456789',
                  batch_max_length: int = 100000,
-                 data_filter: bool = True,
-                 filter_invalid_indic_labels: bool = False,
-                 V: str = None,
-                 CH: str = None,
-                 v: str = None,
-                 m: str = None,
-                 symbols: str= None
+                 data_filter: bool = True
                  ,):
 
         assert type(
@@ -46,12 +40,7 @@ class BaseDataset(Dataset):
         self.character = character
         self.batch_max_length = batch_max_length
         self.data_filter = data_filter
-        self.m =m
-        self.V = V
-        self.CH =CH
-        self.v =v
-        self.symbols=symbols
-        self.filter_invalid_indic_labels = filter_invalid_indic_labels
+        self.abfn_filter = abfn.ABFN()
         if transform is not None:
             self.transforms = transform
         
@@ -61,10 +50,7 @@ class BaseDataset(Dataset):
         self.get_name_list()
 
         self.logger = logging.getLogger()
-        self.logger.info(
-            
-            
-            f'current dataset length is {self.samples} in {self.root}')
+        self.logger.info(f'current dataset length is {self.samples} in {self.root}')
         
     def get_name_list(self):
         raise NotImplementedError
@@ -82,7 +68,7 @@ class BaseDataset(Dataset):
         label = re.sub(out_of_char, '', label.lower())   # remove labels which contain character not in self.character
         
         # filter whose label larger than batch_max_length
-        if len(label) > self.batch_max_length or not self.is_valid_label(label):
+        if len(label) > self.batch_max_length or not self.abfn_filter.is_valid_label(label):
             if not retrun_len:
                 return True
             return True, len(label)
@@ -105,66 +91,4 @@ class BaseDataset(Dataset):
     def __len__(self):
         return self.samples
 
-    def is_valid_label(self, label):
-        #ref https://www.unicode.org/L2/L2016/16161-indic-text-seg.pdf
-        return True  #TODO temproray change
-        
-        if not self.filter_invalid_indic_labels:
-            return True
-        
-        
-        
-        state = 0
-        valid=True
-        
-        for ch in list(label):
-            
-            if not ( ch in self.v or ch in self.m or ch in self.V or ch in self.CH or ch in self.symbols):
-                return False
-            
-            if ch in self.symbols:
-                state=0
-                continue
-                
-            if ch in self.CH:
-                state = 2
-                continue
-        
-            if ch in self.V:
-                state = 1
-                continue
-        
-            if state == 0:
-                if ch in self.v or ch in self.m:
-                    valid=False
-                    break
-        
-            if state == 1:
-                if ch in self.v:
-                    valid = False
-                    break
-            
-                if ch in self.m:
-                    state = 0
-                    continue
-                    
-            if state == 2:
-                if ch in self.v:
-                    state = 3
-                    continue
-                    
-                if ch in self.m:
-                    state = 0
-                    continue
-        
-            if state == 3:
-                if ch in self.m:
-                    state = 0
-                    continue
-            
-                if ch in self.v:
-                    valid = False
-                    break
-        return valid
-    
     

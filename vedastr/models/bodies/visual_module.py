@@ -39,20 +39,20 @@ class VisualModule(nn.Module):
         super(VisualModule, self).__init__()
         self.tps =build_component(tps)
         self.feature_extractor = Feature_Extractor([(1,1), (2,2), (1,1), (2,2), (1,1), (1,1)], False, [1, 32, 128])
-        self.CAM= CAM(25, 8, 64)
+        self.CAM= CAM(self.feature_extractor.Iwantshapes(), 25, 8, 64)
         
     def forward(self, x):
         x= self.tps(x)
         x= self.feature_extractor(x)
         A= self.CAM(x)
 
-        nB, nC, nH, nW = x.size()
+        nB, nC, nH, nW = x[-1].size()
         nT = A.size()[1]
         # Normalize
         A = A / A.view(nB, nT, -1).sum(2).view(nB, nT, 1, 1)
         # weighted sum
-        C = x.view(nB, 1, nC, nH, nW) * A.view(nB, nT, 1, nH, nW)
-        C = C.view(nB, nT, nC, -1).sum(3).transpose(1, 0)
+        C = x[-1].view(nB, 1, nC, nH, nW) * A.view(nB, nT, 1, nH, nW)
+        C = C.view(nB, nT, nC, -1).sum(3)
         
         return C
     

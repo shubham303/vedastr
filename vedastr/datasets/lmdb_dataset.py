@@ -27,25 +27,14 @@ class LmdbDataset(BaseDataset):
                  transform=None,
                  character: str = 'abcdefghijklmnopqrstuvwxyz0123456789',
                  batch_max_length: int = 100000,
-                 data_filter: bool = True,filter_invalid_indic_labels: bool = False,
-                 V: str = None,
-                 CH: str = None,
-                 v: str = None,
-                 m: str = None,
-                 symbols: str= None):
+                 data_filter: bool = True):
         self.index_list = []
         super(LmdbDataset, self).__init__(
             root=root,
             transform=transform,
             character=character,
             batch_max_length=batch_max_length,
-            data_filter=data_filter,
-            filter_invalid_indic_labels=filter_invalid_indic_labels,
-            CH=CH,
-            V=V,
-            v=v,
-            m=m,
-            symbols=symbols,
+            data_filter=data_filter
         )
 
     def get_name_list(self):
