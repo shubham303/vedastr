@@ -5,7 +5,8 @@ test_character = 'ऀँंऄअआइईउऊऋऌऍऎएऐऑऒओऔ�
 batch_max_length = 24
 test_folder_names = ["7", "1", "IIIT","kaggle_train", "kaggle_val", "6"]  ###
 #data_root = '/usr/datasets/synthetic_text_dataset/lmdb_dataset_Hindi/hindi/'
-data_root = '/home/ocr/datasets/recognition/hindi/'
+#data_root = '/home/ocr/datasets/recognition/hindi/'
+data_root= '/nlsasfs/home/ai4bharat/shubhamr/shubham/recognition-dataset/hindi/'
 validation_folder_names = ['MJ_valid', "ST_valid"]
 mj_folder_names = ['MJ_test', 'MJ_train']
 
