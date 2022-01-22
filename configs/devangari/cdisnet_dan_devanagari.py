@@ -14,7 +14,7 @@ mj_folder_names = ['MJ_test', 'MJ_train']
 # work directory
 root_workdir = 'workdir'
 # sample_per_gpu
-samples_per_gpu = 64
+samples_per_gpu = 192
 ###############################################################################
 # 1. inference
 size = (32, 128)
