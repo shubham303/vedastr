@@ -53,7 +53,6 @@ class VisualModule(nn.Module):
         # weighted sum
         C = x[-1].view(nB, 1, nC, nH, nW) * A.view(nB, nT, 1, nH, nW)
         C = C.view(nB, nT, nC, -1).sum(3)
-        
         return C
     
     
@@ -122,6 +121,7 @@ class CAM(nn.Module):
         self.convs = nn.Sequential(*convs)
         # deconvs
         deconvs = []
+        
         for i in range(1, int(depth / 2)):
             deconvs.append(nn.Sequential(nn.ConvTranspose2d(num_channels, num_channels,
                                                            tuple(deconv_ksizes[int(depth/2)-i]),

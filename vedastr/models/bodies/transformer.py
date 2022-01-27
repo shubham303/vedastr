@@ -16,6 +16,10 @@ from __future__ import print_function
 import os
 import sys
 __dir__ = os.path.dirname(os.path.abspath(__file__))
+
+import cv2
+from matplotlib import pyplot as plt
+
 sys.path.append(__dir__)
 sys.path.append(os.path.abspath(os.path.join(__dir__, '..')))
 
@@ -112,6 +116,7 @@ class EncoderLayer(nn.Module):
     def forward(self, query, key, value, slf_attn_mask=None):
         enc_output, enc_slf_attn = self.slf_attn(
             query, key, value, mask=slf_attn_mask)
+       
         enc_output = self.pos_ffn(enc_output)
         return enc_output, enc_slf_attn
 
@@ -127,10 +132,15 @@ class TransformerUnit(nn.Module):
             for _ in range(n_layers)])
         self.layer_norm = nn.LayerNorm(d_model, eps=1e-6)
 
-    def forward(self, query, key, value, src_mask=None, return_attns=False):
+    def forward(self, query, key, value, src_mask=None, save_attns=False):
         for enc_layer in self.layer_stack:
             enc_output, enc_slf_attn = enc_layer(query, key, value, slf_attn_mask=src_mask)
         enc_output = self.layer_norm(enc_output)
+        if save_attns:
+            x = enc_slf_attn.sum(dim=0).cpu().detach().numpy()
+            x = x / 8
+            plt.imshow(x)
+            plt.savefig("attn.png")
         return enc_output
 
 

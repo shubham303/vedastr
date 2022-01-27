@@ -47,7 +47,7 @@ class LmdbDataset(BaseDataset):
             meminit=False)
         with self.env.begin(write=False) as txn:
             n_samples = int(txn.get('num-samples'.encode()))
-            for index in range(n_samples):
+            for index in range(1000):
                 idx = index + 1  # lmdb starts with 1
                 label_key = 'label-%09d'.encode() % idx
                 try:
@@ -78,7 +78,7 @@ class LmdbDataset(BaseDataset):
             buf.seek(0)
             img = Image.open(buf).convert('RGB')  # for color image
             img = np.array(img)
-
+            
             return img, label
 
     def __getitem__(self, index):

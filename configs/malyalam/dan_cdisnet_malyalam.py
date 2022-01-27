@@ -1,16 +1,14 @@
 # language specific changes:
-character = 'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ०१२३४५६७८९ॲ'
+character = "ഀഁംഃഄഅആഇഈഉഊഋഌഎഏഐഒഓഔകഖഗഘങചഛജഝഞടഠഡഢണതഥദധനഩപഫബഭമയരറലളഴവശഷസഹഺ഻഼ഽാിീുൂൃൄെേൈൊോൌ്ൎ൏ൔൕൖൗ൘൙൚൛൜൝൞ൟൠൡൢൣ൦൧൨൩൪൫൬൭൮൯൰൱൲൳൴൵൶൷൸൹ൺൻർൽൾൿ%/?:,.-"
 test_sensitive = False
-test_character = 'ऀँंऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ०१२३४५६७८९ॲ'
+test_character =  "ഀഁംഃഄഅആഇഈഉഊഋഌഎഏഐഒഓഔകഖഗഘങചഛജഝഞടഠഡഢണതഥദധനഩപഫബഭമയരറലളഴവശഷസഹഺ഻഼ഽാിീുൂൃൄെേൈൊോൌ്ൎ൏ൔൕൖൗ൘൙൚൛൜൝൞ൟൠൡൢൣ൦൧൨൩൪൫൬൭൮൯൰൱൲൳൴൵൶൷൸൹ൺൻർൽൾൿ"
 batch_max_length = 24
-test_folder_names = [ "kaggle_train", "kaggle_val", "1","2","3", "4", "5", "6", "7" ]###
-data_root = '/usr/datasets/synthetic_text_dataset/lmdb_dataset_Hindi/hindi/'
-#data_root = '/home/ocr/datasets/recognition/hindi/'
-#data_root= '/nlsasfs/home/ai4bharat/shubhamr/shubham/recognition-dataset/hindi/'
-#validation_folder_names = ['MJ_valid', "ST_valid"]
-validation_folder_names= [ "1","2","3", "4", "5", "6", "7" ]
-#mj_folder_names = ['MJ_test', 'MJ_train']
-mj_folder_names=["IIIT", "1","7" ]
+test_folder_names = ['IIIT']  ###
+data_root = '/usr/datasets/synthetic_text_dataset/lmdb_dataset/malayalam/'
+#data_root = '/home/ocr/datasets/recognition/malyalam/'
+validation_folder_names = ['MJ_valid', "ST_valid"]
+mj_folder_names = ['MJ_test', 'MJ_train']
+
 # CH V , v and m are used to filter valid words in language
 # work directory
 root_workdir = 'workdir'
@@ -132,7 +130,7 @@ inference = dict(
 			d_k=64,
 			d_v=64,
 			dropout=0
-		) for i in range(0, 1)],
+		) for i in range(0, 3)],
 		
 		need_text=True,
 		max_seq_len=batch_max_length + 1,
@@ -166,7 +164,7 @@ common = dict(
 dataset_params = dict(
 	batch_max_length=batch_max_length,
 	data_filter=True,
-	character=character,
+	character=character
 )
 test_dataset_params = dict(
 	batch_max_length=batch_max_length,
@@ -213,18 +211,18 @@ test = dict(
 ###############################################################################
 # 4. train
 ## MJ dataset
-train_root_mj = data_root + 'evaluation/'
+train_root_mj = data_root + 'training/MJ/'
 
 ## ST dataset
-#train_root_st = data_root + 'evaluation/'
+train_root_st = data_root + 'training/ST/'
 
 train_dataset_mj = [dict(type='LmdbDataset', root=train_root_mj + folder_name)
                     for folder_name in mj_folder_names]
-#train_dataset_st = [dict(type='LmdbDataset', root=train_root_st)]
+train_dataset_st = [dict(type='LmdbDataset', root=train_root_st)]
 
 # valid
 
-valid_root = data_root + 'evaluation/'
+valid_root = data_root + 'validation/'
 valid_dataset = [dict(type='LmdbDataset', root=valid_root + folder_name, **test_dataset_params) for folder_name in
                  validation_folder_names]
 
@@ -264,7 +262,7 @@ train = dict(
 					),
 					dict(
 						type='ConcatDatasets',
-						datasets=train_dataset_mj,
+						datasets=train_dataset_st,
 					),
 				],
 				batch_ratio=[0.5, 0.5],
@@ -294,10 +292,9 @@ train = dict(
 	                  ),
 	max_epochs=max_epochs,
 	log_interval=10,
-	trainval_ratio=50,
+	trainval_ratio=4000,
 	max_iterations_val=200,  # 10 percent of train_val ratio.
-	snapshot_interval=500,
+	snapshot_interval=5000,
 	save_best=True,
-	resume=dict(checkpoint = "/home/shubham/Documents/MTP/text-recognition-models/vedastr/tools/workdir"
-	                         "/cdisnet_dan_devanagari/best_acc.pth")
+	resume=None
 )

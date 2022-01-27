@@ -32,17 +32,28 @@ def main():
     runner = InferenceRunner(inference_cfg, common_cfg)
     runner.load_checkpoint(args.checkpoint)
     if os.path.isfile(args.image):
-        images = [args.image]
+        if "jpg" in args.image or "jpeg" in args.image:
+            images = [args.image]
+        else:
+            images=[]
+            lines = open(args.image).readlines()
+            for line in lines:
+                image , label = line.split("\t")
+                images.append((os.path.join(os.path.dirname(args.image), image), label))
     else:
         images = [
             os.path.join(args.image, name) for name in os.listdir(args.image)
         ]
-    for img in images:
-        image = cv2.imread(img)
+    for (img,label) in images:
+        
+        image = cv2.imread(img+".jpg")
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         pred_str, probs = runner(image)
-        runner.logger.info('Text in {} is:\t {} '.format(pred_str, img))
+        if pred_str[0] != label.strip():
+            print(img," ", label.strip() ," ", pred_str[0])
+            
+        #runner.logger.info('Text in {} is:\t {} '.format(pred_str, img))
 
-
+    
 if __name__ == '__main__':
     main()
