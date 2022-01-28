@@ -111,5 +111,5 @@ class InferenceRunner(Common):
                 pred = self.model((image,))
 
             pred, prob = self.postprocess(pred, self.postprocess_cfg)
-
+           
         return pred, prob

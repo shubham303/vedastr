@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 from vedastr.runners import TrainRunner  # noqa 402
 from vedastr.utils import Config  # noqa 402
 
-import wandb
+#import wandb
 
 
 
@@ -47,8 +47,8 @@ def main():
 	common_cfg = cfg['common']
 	common_cfg['workdir'] = workdir
 	common_cfg['distribute'] = args.distribute
-	if args.wandb:
-		"""config={
+	"""	if args.wandb:
+		config={
 			"learning_rate" : train_cfg["optimizer"]["lr"],
 			"dropout" : cfg["dropout"],
 			"optimizer" : train_cfg["optimizer"]["type"],
@@ -58,16 +58,16 @@ def main():
 			"batch_size" : cfg["samples_per_gpu"],
 			"num_mdcdp_layers" : cfg["num_mdcdp_layers"],
 			"d_model" : cfg["d_model"],
-		}"""
+		}
 		wandb.init(project=args.wandb, entity="cs20m064")
 		runner = TrainRunner(train_cfg, inference_cfg, common_cfg, wandb)
 		
-	else:
-		print("wandb project name not passed in arguments")
-		runner= TrainRunner(train_cfg, inference_cfg, common_cfg)
+	else:"""
+	print("wandb project name not passed in arguments")
+	runner= TrainRunner(train_cfg, inference_cfg, common_cfg)
 		
 	runner()
-	wandb.finish()
+	#wandb.finish()
 
 
 if __name__ == '__main__':
