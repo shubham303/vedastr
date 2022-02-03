@@ -18,6 +18,8 @@ __dir__ = os.path.dirname(os.path.abspath(__file__))
 
 from vedastr.models.bodies import build_body
 from .registry import MODELS
+from einops import rearrange
+
 
 sys.path.append(__dir__)
 sys.path.append(os.path.abspath(os.path.join(__dir__, '/')))
@@ -74,10 +76,18 @@ class Cdisnet(nn.Module):
                 fuse_feature_step = fuse_feature[:, i, :]
                 fuse_feature_step = self.linear(fuse_feature_step)
                 outputs.append(fuse_feature_step)
+                
                 fuse_feature_step = F.softmax(fuse_feature_step, dim=-1)
+                #fuse_feature_step = fuse_feature_step.view(64, -1)
                 _, max_idx = torch.max(fuse_feature_step, dim=1, keepdim=False)
+                #input_char = input_char.repeat(3, 1, 1).transpose(1,0)
+                
+               # vis_feature = vis_feature.repeat(3,1,1)
+                #pos_embedding = pos_embedding.repeat(3, 1, 1)
                 if i < self.max_seq_len - 1:
                     input_char[:, i+1] = max_idx
+                    #input_char = rearrange(input_char, 'd0 d1 d2 -> (d0 d1) d2')
+                    
             outputs = torch.stack(outputs, dim=1)
 
         return outputs

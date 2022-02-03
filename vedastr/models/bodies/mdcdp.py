@@ -42,6 +42,7 @@ class MDCDP(nn.Module):
         self.conv = nn.Conv2d(d_model * 2, d_model, kernel_size=1,
                           stride=1, padding=0, bias=False)
         self.active = nn.Sigmoid()
+        self.diag_mask = None
         
     def _generate_pos_mask(self, query, key):
         query_length = query.size(1)
@@ -49,7 +50,11 @@ class MDCDP(nn.Module):
         mask = torch.triu(
             torch.ones((query_length, key_length), dtype=torch.bool) , diagonal=1
         ).to(device)
+      
         return mask
+    
+    
+    
 
     def _generate_tgt_mask(self, query, key):
         pad_mask = (query != self.padding_idx).unsqueeze(1).unsqueeze(3)
@@ -61,11 +66,31 @@ class MDCDP(nn.Module):
         target_mask = pad_mask & sub_mask
         return target_mask
 
+    def diagonal_mask(self, query, key):
+        if self.diag_mask != None:
+            return self.diag_mask
+        
+        query_length = query.size(1)
+        key_length = key.size(1)
+
+        mask = torch.eye(query_length, dtype=torch.bool).to(device)
+
+        for i, x in enumerate(mask):
+            for j, y in enumerate(x):
+                if abs(j - i) <=1:
+                    mask[i][j] = False
+                else:
+                    mask[i][j] = True
+
+        self.diag_mask= mask
+        return self.diag_mask
+    
     def forward(self, pos_embedding, vis_feature, sem_embedding):
         # self attention enhancement
         pos_mask = self._generate_pos_mask(pos_embedding, pos_embedding)
+        vis_mask= self.diagonal_mask(pos_embedding, pos_embedding)
         pos_feature = self.sae(pos_embedding, pos_embedding, pos_embedding, pos_mask)
-        vis_feature = self.cbi_v(pos_feature, vis_feature, vis_feature)
+        vis_feature = self.cbi_v(pos_feature, vis_feature, vis_feature, vis_mask)
         sem_mask = self._generate_pos_mask(pos_feature, sem_embedding)
         sem_embedding = self.cbi_s(pos_feature, sem_embedding, sem_embedding, sem_mask)
         # (batch_size, length, channel * 2)
@@ -79,10 +104,29 @@ class MDCDP(nn.Module):
         fuse_feature = context_vis_feature + context_sem_embedding
 
         return fuse_feature
+
+
+def diagonal_mask( query, key):
+    
+    query_length = 5
+    key_length =5
+    
+    mask = torch.eye(query_length, dtype=torch.bool)
+    
+    for i, x in enumerate(mask):
+        for j, y in enumerate(x):
+            if abs(j - i) <= 1:
+                mask[i][j] = False
+            else:
+                mask[i][j] = True
         
+    
+    return mask
 
-
-
+if __name__ == "__main__":
+    mask= diagonal_mask(5, 5)
+    print(mask)
+    
         
 
     

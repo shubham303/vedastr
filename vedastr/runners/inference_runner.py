@@ -94,6 +94,14 @@ class InferenceRunner(Common):
             preds_str.append(pstr)
         return preds_str, preds_prob
 
+    """def beam_search_decoder(self, predictions, top_k = 3):
+        output_sequences = [([], 0)]
+        
+        for tokens_probs  in predictions:
+            new_sequence =[]
+            for old_seq, old_score in output_sequences:
+                for char_index in range(len(tokens_probs)):
+                    new"""
     def __call__(self, image):
         with torch.no_grad():
             dummy_text = ''
@@ -109,7 +117,8 @@ class InferenceRunner(Common):
                 pred = self.model((image, label_input))
             else:
                 pred = self.model((image,))
-
+                
+          
             pred, prob = self.postprocess(pred, self.postprocess_cfg)
-           
+
         return pred, prob

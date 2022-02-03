@@ -44,9 +44,12 @@ def main():
         images = [
             os.path.join(args.image, name) for name in os.listdir(args.image)
         ]
-    for (img,label) in images:
-        
-        image = cv2.imread(img+".jpg")
+    for img in images:
+        label=""
+        if len(img) ==2 :
+            img = img[0]
+            label=img[1]
+        image = cv2.imread(img)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         pred_str, probs = runner(image)
         if pred_str[0] != label.strip():

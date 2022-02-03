@@ -43,7 +43,7 @@ class SemanticEmbedding(nn.Module):
         self.linear = nn.Linear(d_model, num_classes)
         self.max_seq_len = max_seq_len + 1
         self.padding_idx = padding_idx
-    
+        self.diag_mask=None
     
     def _generate_mask(self, query, key):
         pad_mask = (query == self.padding_idx).unsqueeze(2)
@@ -56,12 +56,33 @@ class SemanticEmbedding(nn.Module):
         target_mask = (pad_mask | sub_mask)
         return target_mask
 
+    def diagonal_mask(self, query, key):
+        if self.diag_mask != None:
+            return self.diag_mask
+    
+        query_length = query.size(1)
+        key_length = key.size(1)
+    
+        mask = torch.eye(query_length, dtype=torch.bool).to(device)
+    
+        for i, x in enumerate(mask):
+            for j, y in enumerate(x):
+                if abs(j - i) <=1:
+                    mask[i][j] = False
+                else:
+                    mask[i][j] = True
+    
+        self.diag_mask = mask
+        return self.diag_mask
+    
+    
+    
     def forward(self, enc_feats, input_char):
         # enc_feats: [n, w, c]
         self.sequence_layer.flatten_parameters()
         input_embedding = self.embedding(input_char)
         semantic_embedding, _ = self.sequence_layer(input_embedding)
-        semantic_mask = self._generate_mask(input_char, enc_feats)
+        semantic_mask = self.diagonal_mask(input_char, enc_feats)
         outputs = self.attention_layer(semantic_embedding, enc_feats, enc_feats, semantic_mask)[0]
         return outputs
 

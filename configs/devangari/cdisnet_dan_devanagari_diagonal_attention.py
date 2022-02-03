@@ -3,15 +3,17 @@ character = 'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔक�
 test_sensitive = False
 test_character = 'ऀँंऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ०१२३४५६७८९ॲ'
 batch_max_length = 24
-test_folder_names = [ "2","3", "4", "5", "6", "7"]###
+#test_folder_names = [   "kaggle_val","2","3", "6", ]###
+test_folder_names =["IIIT","kaggle_train", "kaggle_val","1", "7","2","3", "4", "5", "6","icdar_hindi", ]
 data_root = '/usr/datasets/synthetic_text_dataset/lmdb_dataset/hindi/'
 #data_root = '/home/ocr/datasets/recognition/hindi/'
 #data_root= '/nlsasfs/home/ai4bharat/shubhamr/shubham/recognition-dataset/hindi/'
-validation_folder_names = [ "2","3", "4", "5", "6", "7"]
+validation_folder_names = ["IIIT","kaggle_train","1", "7", "4", "5", ]
 #validation_folder_names= [ "1","2","3", "4", "5", "6", "7" ]
+
 mj_folder_names = ['MJ_test', 'MJ_train']
 
-real_world_train_folders=["IIIT", "kaggle_train", "kaggle_val", "icdar_hindi","1"]
+real_world_train_folders=[  "icdar_hindi","2" , "3", "6", "kaggle_val"]
 
 
 # CH V , v and m are used to filter valid words in language
@@ -243,7 +245,7 @@ train_transforms = [
 	dict(type='ToTensor'),
 ]
 
-max_epochs = 6
+max_epochs = 10
 milestones = [2, 4]  # epoch start from 0, so 2 means lr decay at 3 epoch, 4 means lr decay at the end of
 
 train = dict(
@@ -294,7 +296,7 @@ train = dict(
 			transform=test['data']['transform'],
 		),
 	),
-	optimizer=dict(type='Adam', lr=0.001),
+	optimizer=dict(type='Adam', lr=0.1),
 	criterion=dict(type='CrossEntropyLoss'),
 	lr_scheduler=dict(type='CosineLR',
 	                  iter_based=True,
@@ -302,9 +304,9 @@ train = dict(
 	                  ),
 	max_epochs=max_epochs,
 	log_interval=50,
-	trainval_ratio=500,
-	max_iterations_val=300,  # 10 percent of train_val ratio.
+	trainval_ratio=200,
+	max_iterations_val=400,  # 10 percent of train_val ratio.
 	snapshot_interval=1000,
 	save_best=True,
-	resume=dict(checkpoint = "/home/shubham/Documents/MTP/text-recognition-models/vedastr/tools/workdir/cdisnet_dan_devanagari_star_attention_before_finetuning/best_norm.pth")
+	resume=dict(checkpoint="/home/shubham/Documents/MTP/text-recognition-models/vedastr/tools/workdir/cdisnet_dan_devanagari_star_attention_after_finetuning/best_acc.pth")
 )
