@@ -7,6 +7,7 @@ norm_cfg = {
     'BN': ('bn', nn.BatchNorm2d),
     'SyncBN': ('bn', nn.SyncBatchNorm),
     'GN': ('gn', nn.GroupNorm),
+    'LN' : ('ln' , nn.LayerNorm)
     # and potentially 'SN'
 }
 

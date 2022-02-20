@@ -1,5 +1,6 @@
 import torch.nn as nn
 
+from .norm import build_norm_layer
 from .registry import UTILS
 
 
@@ -77,7 +78,8 @@ class FCModules(nn.Module):
                  activation='relu',
                  inplace=True,
                  dropouts=None,
-                 num_fcs=1):
+                 num_fcs=1,
+                 norm=None):
         super().__init__()
 
         if dropouts is not None:
@@ -98,8 +100,12 @@ class FCModules(nn.Module):
             layers.append(
                 FCModule(out_channels, out_channels, bias, activation, inplace,
                          dropout))
+            
+        if norm:
+            layers.append(build_norm_layer(norm, out_channels)[1])
 
         self.block = nn.Sequential(*layers)
+        
 
     def forward(self, x):
         feat = self.block(x)

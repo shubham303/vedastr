@@ -1,88 +1,24 @@
 # language specific changes:
 from vedastr.attention_masks.masks import generate_square_subsequent_mask, src_mask_attend_only_neighbour_tokens
 
-character = 'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ०१२३४५६७८९ॲ'
+character = 'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ०१२३४५६७८९ॲഀഁംഃഄഅആഇഈഉഊഋഌഎഏഐഒഓഔകഖഗഘങചഛജഝഞടഠഡഢണതഥദധനഩപഫബഭമയരറലളഴവശഷസഹഺ഻഼ഽാിീുൂൃൄെേൈൊോൌ്ൎ൏ൔൕൖൗ൘൙൚൛൜൝൞ൟൠൡൢൣ൦൧൨൩൪൫൬൭൮൯൰൱൲൳൴൵൶൷൸൹ൺൻർൽൾൿ'
 test_sensitive = False
-test_character = 'ऀँंऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ०१२३४५६७८९ॲ'
+test_character = 'ऀँंऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ०१२३४५६७८९ॲഀഁംഃഄഅആഇഈഉഊഋഌഎഏഐഒഓഔകഖഗഘങചഛജഝഞടഠഡഢണതഥദധനഩപഫബഭമയരറലളഴവശഷസഹഺ഻഼ഽാിീുൂൃൄെേൈൊോൌ്ൎ൏ൔൕൖൗ൘൙൚൛൜൝൞ൟൠൡൢൣ൦൧൨൩൪൫൬൭൮൯൰൱൲൳൴൵൶൷൸൹ൺൻർൽൾൿ'
 batch_max_length = 25
 test_folder_names = ["2", "3", "4", "5", "6", "7"]  ###
 
-languages= ["HI"]
-data_roots = ['/usr/datasets/synthetic_text_dataset/lmdb_dataset/hindi/']
+data_root = '/usr/datasets/synthetic_text_dataset/lmdb_dataset/hindi/'
+data_root_1 = '/usr/datasets/synthetic_text_dataset/lmdb_dataset/malayalam/'
 
 # data_root = '/home/ocr/datasets/recognition/hindi/'
 # data_root= '/nlsasfs/home/ai4bharat/shubhamr/shubham/recognition-dataset/hindi/'
-
 validation_folder_names = ["MJ_valid", "ST_valid"]
 # validation_folder_names= [ "1","2","3", "4", "5", "6", "7" ]
 mj_folder_names = ['MJ_test', 'MJ_train']
 
 real_world_train_folders = ["IIIT", "kaggle_train", "kaggle_val", "icdar_hindi", "1"]
 
-##############################################################################################
-#dataset related configuration.
-fine_tune = False                       # set to true to finetune model on real dataset.
-train_datasets=[]
-valid_datasets= []
-test_datasets=[]
-for root in data_roots:
-	
-	dataset_params = dict(
-		batch_max_length=batch_max_length,
-		data_filter=True,
-		character=character,
-	)
-	test_dataset_params = dict(
-		batch_max_length=batch_max_length,
-		data_filter=True,
-		character=test_character,
-	)
-	
-	
-	try:
-		if not fine_tune:
-			st = root + "training/ST"
-			mj = root + "training/MJ/"
-			train_dataset_mj = [dict(type='LmdbDataset', root=mj + folder_name)
-			                    for folder_name in mj_folder_names]
-			
-			train_dataset_st = [dict(type='LmdbDataset', root=st)]
-			
-			train_datasets.append(train_dataset_mj)
-			train_datasets.append(train_dataset_st)
-		
-			
-			valid_root = root + 'validation/'
-			valid_dataset = [dict(type='LmdbDataset', root=valid_root + folder_name, **test_dataset_params) for
-			                 folder_name in validation_folder_names]
-			
-			valid_datasets.append(valid_dataset)
-			
-			test_root = root + "evaluation/"
-			
-			test_dataset = [dict(type='LmdbDataset', root=test_root + f_name , **test_dataset_params)  for f_name in
-			                test_folder_names]
-			test_datasets.extend(test_dataset)
-		
-		else:
-			train_root_real = root + "evaluation/"
-			train_dataset_real = [dict(type='LmdbDataset', root=train_root_real + folder_name)
-			                      for folder_name in real_world_train_folders]
-			train_datasets.append(train_dataset_real)
-	
-	except Exception:
-		""" Note : ("exception occurred during dataset creation. For multilingual model this exception occur because
-		# some ""langauge dataset may not have dataset with specific name. if that is the case no need to worry.")
-		"""
-		print(Exception)
-		continue
-		
-
-
-
-
-##############################################################################################
-
+# CH V , v and m are used to filter valid words in language
 # work directory
 root_workdir = 'workdir'
 # sample_per_gpu
@@ -96,15 +32,13 @@ sensitive = True
 fiducial_num = 20
 dropout = 0.1
 norm_cfg = dict(type='BN')
-layer_norm_cfg = dict(type="LN")
 num_characters = len(character) + 2  # extra go and end character.
 num_class = len(character) + 1  # [GO] character is not in prediction list.
 hidden_dim = 512
-hidden_dim_cbi = hidden_dim
+hidden_dim_cbi = 512
 n_head = 8
 layer_norm = dict(type='LayerNorm', normalized_shape=hidden_dim)
 layer_norm_cbi = dict(type='LayerNorm', normalized_shape=hidden_dim)
-
 
 inference = dict(
 	transform=[
@@ -120,7 +54,8 @@ inference = dict(
 		character=character,
 		batch_max_length=batch_max_length,
 		go_last=True,
-		language_list = languages                        # language id is returned by abfn module
+		language_dict={"HI":0, "ML": 1, "BN": 2 , "TA":3 }      # language dict is used to convert lanuage id returned
+		# by abfn to numeric value.
 	),
 	model=dict(
 		type='Cdisnet',
@@ -151,7 +86,7 @@ inference = dict(
 											dict(type='ConvModule', in_channels=128, out_channels=256,
 											     kernel_size=3, stride=1, padding=1, norm_cfg=norm_cfg),
 											dict(type='MaxPool2d', kernel_size=2, stride=2),
-											dict(type='ConvModule', in_channels=256, out_channels=hidden_dim,
+											dict(type='ConvModule', in_channels=256, out_channels=512,
 											     kernel_size=3, stride=1, padding=1, norm_cfg=norm_cfg),
 										],
 									),
@@ -160,7 +95,7 @@ inference = dict(
 							),
 							pool=dict(type='AdaptiveAvgPool2d', output_size=1),
 							head=[
-								dict(type='FCModule', in_channels=hidden_dim, out_channels=256),
+								dict(type='FCModule', in_channels=512, out_channels=256),
 								dict(type='FCModule', in_channels=256, out_channels=fiducial_num * 2, activation=None)
 							],
 						),
@@ -191,9 +126,9 @@ inference = dict(
 					to_layer="vis_positional_encoding",
 					arch=dict(
 						type="PositionEncoder1D",
-						in_channels=hidden_dim,
+						in_channels=512,
 						max_len=200,
-						dropout=dropout
+						dropout=0.1
 					)
 				)
 			
@@ -204,25 +139,20 @@ inference = dict(
 			type="GBody",
 			pipelines=[
 				dict(
-					type="PositionalEncodingComponent",
+					type="EmbeddingComponent",
 					from_layer="input",
 					to_layer="positional_embedding",
-					
 					arch=dict(
-						type="PositionEncoder1D",
-						in_channels=hidden_dim,
-						max_len=200,
-						dropout=dropout
+						type="PositionalEmbedding",
+						d_onehot=512,
+						positional_encoding=dict(
+							type="PositionEncoder1D",
+							in_channels=512,
+							max_len=200,
+							dropout=0.1
+						)
 					),
-					
-				),
-			dict(
-					type = "PlugComponent",
-					from_layer="positional_embedding",
-					to_layer="linear_layer",
-					arch= dict(type='FCModules', in_channels=hidden_dim, out_channels=hidden_dim , activation =
-					"relu",num_fcs=2, norm = layer_norm_cfg)),
-			
+				)
 			],
 			collect=dict(type='CollectBlock', from_layer='positional_embedding'),
 		),
@@ -246,9 +176,9 @@ inference = dict(
 					to_layer="semantic_pos_encoding",
 					arch=dict(
 						type="PositionEncoder1D",
-						in_channels=hidden_dim,
+						in_channels=512,
 						max_len=200,
-						dropout=dropout
+						dropout=0.1
 					)
 				)
 			],
@@ -350,36 +280,22 @@ inference = dict(
 				pos_mask=generate_square_subsequent_mask,
 				vis_mask=src_mask_attend_only_neighbour_tokens,
 				sem_mask=generate_square_subsequent_mask,
-				vis_mask_range=2,
 				activation=dict(
 					type="Sigmoid"
 				)
 			)
 			for i in range(0, 1)],
+		
 		language_embedding=dict(
-			type="GBody",
-			pipelines=[
-				
-				dict(
-					type='EmbeddingComponent',
-					from_layer='input',
-					to_layer='language_embedding',
-					arch=dict(
-						type='Embedding',
-						num_embeddings=len(languages)+1,                         #num_embedding is 1 extra than total
-						# number of
-						# languages.
-						embedding_dim=hidden_dim,                     #
-					)
-				),
-				dict(
-					type = "PlugComponent",
-					from_layer="language_embedding",
-					to_layer="linear_layer",
-					arch= dict(type='FCModule', in_channels=hidden_dim, out_channels=hidden_dim , dropout=dropout)),
-			],
-			collect=dict(type='CollectBlock', from_layer='linear_layer')
+			type="LanguageEmbedding",
+			embedding=dict(
+				type='Embedding',
+				num_embeddings=2,
+				embedding_dim=hidden_dim,
+			),
+			d_model=hidden_dim
 		),
+		
 		need_text=True,
 		max_seq_len=batch_max_length + 1,
 		d_model=hidden_dim,
@@ -410,11 +326,29 @@ common = dict(
 )
 
 ###############################################################################
-
+dataset_params = dict(
+	batch_max_length=batch_max_length,
+	data_filter=True,
+	character=character,
+)
+test_dataset_params = dict(
+	batch_max_length=batch_max_length,
+	data_filter=True,
+	character=test_character,
+)
 
 # data_root = './data/data_lmdb_release/'
 ###############################################################################
+# 3. test
+test_root = data_root + 'evaluation/'
 
+dict(
+	type='ConcatDatasets',
+	datasets=[dict(type="ConcatDatasets", datasets=d) for d in valid_datasets]
+	         ** test_dataset_params,
+),
+test_dataset = [dict(type='LmdbDataset', root=test_root + f_name,
+                     **test_dataset_params) for f_name in test_folder_names]
 
 test = dict(
 	data=dict(
@@ -425,7 +359,7 @@ test = dict(
 			shuffle=False,
 		),
 		sampler=dict(type='DefaultSampler', shuffle=False),
-		dataset=test_datasets,
+		dataset=test_dataset,
 		transform=[
 			dict(type='Sensitive', sensitive=test_sensitive),
 			dict(type='Filter', need_character=test_character),
@@ -444,14 +378,38 @@ test = dict(
 ###############################################################################
 # 4. train
 ## MJ dataset
+train_root_mj = data_root + 'training/MJ/'
 
+## ST dataset
+train_root_st = data_root + 'training/ST/'
 
+train_root_mj_1 = data_root_1 + 'training/MJ/'
 
+## ST dataset
+train_root_st_1 = data_root_1 + 'training/ST/'
 
+train_dataset_mj = [dict(type='LmdbDataset', root=train_root_mj + folder_name)
+                    for folder_name in mj_folder_names]
+train_dataset_st = [dict(type='LmdbDataset', root=train_root_st)]
+
+train_dataset_mj_1 = [dict(type='LmdbDataset', root=train_root_mj_1 + folder_name)
+                      for folder_name in mj_folder_names]
+train_dataset_st_1 = [dict(type='LmdbDataset', root=train_root_st_1)]
+
+train_root_real = data_root + "evaluation/"
+
+train_dataset_real = [dict(type='LmdbDataset', root=train_root_real + folder_name)
+                      for folder_name in real_world_train_folders]
 
 # valid
 
+valid_root = data_root + 'validation/'
+valid_dataset = [dict(type='LmdbDataset', root=valid_root + folder_name, **test_dataset_params) for folder_name in
+                 validation_folder_names]
 
+valid_root_1 = data_root + 'validation/'
+valid_dataset_1 = [dict(type='LmdbDataset', root=valid_root_1 + folder_name, **test_dataset_params) for folder_name in
+                   validation_folder_names]
 
 train_transforms = [
 	dict(type='Sensitive', sensitive=sensitive),
@@ -482,10 +440,30 @@ train = dict(
 			),
 			dataset=dict(
 				type='ConcatDatasets',
-				datasets= [dict(type="ConcatDatasets", datasets =d) for d in train_datasets],
-				batch_ratio=[1 / len(train_datasets)] * len(train_datasets)   ,              # this batch ratio reads
-				# data
-				             # from every dataset with equal size.
+				datasets=[
+					dict(
+						type='ConcatDatasets',
+						datasets=train_dataset_mj,
+						# datasets=train_dataset_real
+					),
+					dict(
+						type='ConcatDatasets',
+						datasets=train_dataset_st,
+						# datasets=train_dataset_real
+					),
+					
+					dict(
+						type='ConcatDatasets',
+						datasets=train_dataset_mj_1,
+						# datasets=train_dataset_real
+					),
+					dict(
+						type='ConcatDatasets',
+						datasets=train_dataset_st_1,
+						# datasets=train_dataset_real
+					),
+				],
+				batch_ratio=[0.25, 0.25, 0.25, 0.25],
 				**dataset_params,
 			),
 			transform=train_transforms,
@@ -499,10 +477,19 @@ train = dict(
 			),
 			dataset=dict(
 				type='ConcatDatasets',
-				datasets=[dict(type="ConcatDatasets", datasets =d) for d in valid_datasets],
-			),
+				datasets=[
+					dict(
+						type='ConcatDatasets',
+						datasets=valid_dataset,
+					),
+					dict(
+						type='ConcatDatasets',
+						datasets=valid_dataset_1,
+					),
+				]),
+			
 			transform=test['data']['transform'],
-		)
+		),
 	),
 	optimizer=dict(type='Adam', lr=0.001),
 	criterion=dict(type='CrossEntropyLoss'),
@@ -512,7 +499,7 @@ train = dict(
 	                  ),
 	max_epochs=max_epochs,
 	log_interval=50,
-	trainval_ratio=200,
+	trainval_ratio=5000,
 	max_iterations_val=500,  # 10 percent of train_val ratio.
 	snapshot_interval=10000,
 	save_best=True,

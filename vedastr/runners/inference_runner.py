@@ -112,7 +112,7 @@ class InferenceRunner(Common):
             if self.use_gpu:
                 image = image.cuda()
                 label_input = label_input.cuda()
-
+                
             if self.need_text:
                 pred = self.model((image, label_input))
             else:

@@ -4,6 +4,8 @@ from .feature_extractors import build_brick, build_feature_extractor
 from .rectificators import build_rectificator
 from .registry import COMPONENT
 from .sequences import build_sequence_encoder
+from .sequences.transformer.embedding.builder import build_embedding_layer
+from .sequences.transformer.position_encoder import build_position_encoder
 from ..utils import build_module
 
 
@@ -60,3 +62,17 @@ class PlugComponent(BaseComponent):
     def __init__(self, from_layer, to_layer, arch):
         super(PlugComponent, self).__init__(from_layer, to_layer,
                                             build_module(arch))
+
+
+@COMPONENT.register_module
+class PositionalEncodingComponent(BaseComponent):
+    def __init__(self, from_layer, to_layer, arch):
+        super(PositionalEncodingComponent, self).__init__(from_layer, to_layer,
+                                            build_position_encoder(arch))
+
+
+@COMPONENT.register_module
+class EmbeddingComponent(BaseComponent):
+    def __init__(self, from_layer, to_layer, arch):
+        super(EmbeddingComponent, self).__init__(from_layer, to_layer,
+                                            build_embedding_layer(arch))

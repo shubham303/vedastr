@@ -1,14 +1,15 @@
 # language specific changes:
 from vedastr.attention_masks.masks import generate_square_subsequent_mask, src_mask_attend_only_neighbour_tokens
 
-character = 'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ०१२३४५६७८९ॲ'
+character = 'ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ०१२३४५६७८९ॲഀഁംഃഄഅആഇഈഉഊഋഌഎഏഐഒഓഔകഖഗഘങചഛജഝഞടഠഡഢണതഥദധനഩപഫബഭമയരറലളഴവശഷസഹഺ഻഼ഽാിീുൂൃൄെേൈൊോൌ്ൎ൏ൔൕൖൗ൘൙൚൛൜൝൞ൟൠൡൢൣ൦൧൨൩൪൫൬൭൮൯൰൱൲൳൴൵൶൷൸൹ൺൻർൽൾൿ'
 test_sensitive = False
-test_character = 'ऀँंऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ०१२३४५६७८९ॲ'
+test_character = 'ऀँंऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ०१२३४५६७८९ॲഀഁംഃഄഅആഇഈഉഊഋഌഎഏഐഒഓഔകഖഗഘങചഛജഝഞടഠഡഢണതഥദധനഩപഫബഭമയരറലളഴവശഷസഹഺ഻഼ഽാിീുൂൃൄെേൈൊോൌ്ൎ൏ൔൕൖൗ൘൙൚൛൜൝൞ൟൠൡൢൣ൦൧൨൩൪൫൬൭൮൯൰൱൲൳൴൵൶൷൸൹ൺൻർൽൾൿ'
 batch_max_length = 25
 test_folder_names = ["2", "3", "4", "5", "6", "7"]  ###
 
-languages= ["HI"]
-data_roots = ['/usr/datasets/synthetic_text_dataset/lmdb_dataset/hindi/']
+languages = ["HI", "ML"]
+data_roots = ['/usr/datasets/synthetic_text_dataset/lmdb_dataset/hindi/',
+              '/usr/datasets/synthetic_text_dataset/lmdb_dataset/malayalam/']
 
 # data_root = '/home/ocr/datasets/recognition/hindi/'
 # data_root= '/nlsasfs/home/ai4bharat/shubhamr/shubham/recognition-dataset/hindi/'
@@ -20,11 +21,11 @@ mj_folder_names = ['MJ_test', 'MJ_train']
 real_world_train_folders = ["IIIT", "kaggle_train", "kaggle_val", "icdar_hindi", "1"]
 
 ##############################################################################################
-#dataset related configuration.
-fine_tune = False                       # set to true to finetune model on real dataset.
-train_datasets=[]
-valid_datasets= []
-test_datasets=[]
+# dataset related configuration.
+fine_tune = False  # set to true to finetune model on real dataset.
+train_datasets = []
+valid_datasets = []
+test_datasets = []
 for root in data_roots:
 	
 	dataset_params = dict(
@@ -38,7 +39,6 @@ for root in data_roots:
 		character=test_character,
 	)
 	
-	
 	try:
 		if not fine_tune:
 			st = root + "training/ST"
@@ -50,7 +50,6 @@ for root in data_roots:
 			
 			train_datasets.append(train_dataset_mj)
 			train_datasets.append(train_dataset_st)
-		
 			
 			valid_root = root + 'validation/'
 			valid_dataset = [dict(type='LmdbDataset', root=valid_root + folder_name, **test_dataset_params) for
@@ -60,7 +59,7 @@ for root in data_roots:
 			
 			test_root = root + "evaluation/"
 			
-			test_dataset = [dict(type='LmdbDataset', root=test_root + f_name , **test_dataset_params)  for f_name in
+			test_dataset = [dict(type='LmdbDataset', root=test_root + f_name, **test_dataset_params) for f_name in
 			                test_folder_names]
 			test_datasets.extend(test_dataset)
 		
@@ -76,10 +75,6 @@ for root in data_roots:
 		"""
 		print(Exception)
 		continue
-		
-
-
-
 
 ##############################################################################################
 
@@ -105,7 +100,6 @@ n_head = 8
 layer_norm = dict(type='LayerNorm', normalized_shape=hidden_dim)
 layer_norm_cbi = dict(type='LayerNorm', normalized_shape=hidden_dim)
 
-
 inference = dict(
 	transform=[
 		dict(type='Sensitive', sensitive=sensitive),
@@ -120,7 +114,7 @@ inference = dict(
 		character=character,
 		batch_max_length=batch_max_length,
 		go_last=True,
-		language_list = languages                        # language id is returned by abfn module
+		language_list=languages  # language id is returned by abfn module
 	),
 	model=dict(
 		type='Cdisnet',
@@ -214,14 +208,14 @@ inference = dict(
 						max_len=200,
 						dropout=dropout
 					),
-					
+				
 				),
-			dict(
-					type = "PlugComponent",
+				dict(
+					type="PlugComponent",
 					from_layer="positional_embedding",
 					to_layer="linear_layer",
-					arch= dict(type='FCModules', in_channels=hidden_dim, out_channels=hidden_dim , activation =
-					"relu",num_fcs=2, norm = layer_norm_cfg)),
+					arch=dict(type='FCModules', in_channels=hidden_dim, out_channels=hidden_dim, activation=
+					"relu", num_fcs=2, norm=layer_norm_cfg)),
 			
 			],
 			collect=dict(type='CollectBlock', from_layer='positional_embedding'),
@@ -366,17 +360,17 @@ inference = dict(
 					to_layer='language_embedding',
 					arch=dict(
 						type='Embedding',
-						num_embeddings=len(languages)+1,                         #num_embedding is 1 extra than total
+						num_embeddings=len(languages) + 1,  # num_embedding is 1 extra than total
 						# number of
 						# languages.
-						embedding_dim=hidden_dim,                     #
+						embedding_dim=hidden_dim,  #
 					)
 				),
 				dict(
-					type = "PlugComponent",
+					type="PlugComponent",
 					from_layer="language_embedding",
 					to_layer="linear_layer",
-					arch= dict(type='FCModule', in_channels=hidden_dim, out_channels=hidden_dim , dropout=dropout)),
+					arch=dict(type='FCModule', in_channels=hidden_dim, out_channels=hidden_dim, dropout=dropout)),
 			],
 			collect=dict(type='CollectBlock', from_layer='linear_layer')
 		),
@@ -446,11 +440,7 @@ test = dict(
 ## MJ dataset
 
 
-
-
-
 # valid
-
 
 
 train_transforms = [
@@ -482,10 +472,10 @@ train = dict(
 			),
 			dataset=dict(
 				type='ConcatDatasets',
-				datasets= [dict(type="ConcatDatasets", datasets =d) for d in train_datasets],
-				batch_ratio=[1 / len(train_datasets)] * len(train_datasets)   ,              # this batch ratio reads
+				datasets=[dict(type="ConcatDatasets", datasets=d) for d in train_datasets],
+				batch_ratio=[1 / len(train_datasets)] * len(train_datasets),  # this batch ratio reads
 				# data
-				             # from every dataset with equal size.
+				# from every dataset with equal size.
 				**dataset_params,
 			),
 			transform=train_transforms,
@@ -499,7 +489,7 @@ train = dict(
 			),
 			dataset=dict(
 				type='ConcatDatasets',
-				datasets=[dict(type="ConcatDatasets", datasets =d) for d in valid_datasets],
+				datasets=[dict(type="ConcatDatasets", datasets=d) for d in valid_datasets],
 			),
 			transform=test['data']['transform'],
 		)

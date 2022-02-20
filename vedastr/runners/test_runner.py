@@ -25,13 +25,15 @@ class TestRunner(InferenceRunner):
     def test_batch(self, img, label, save_path=None, exclude_num=0):
         self.model.eval()
         with torch.no_grad():
-            label_input, label_length, label_target = self.converter.test_encode(label)  # noqa 501
+            label_input, label_length, label_target, language_id = self.converter.test_encode(label)  # noqa 501
+            
             if self.use_gpu:
                 img = img.cuda()
                 label_input = label_input.cuda()
-    
+                language_id = language_id.cuda()
+                
             if self.need_text:
-                pred = self.model((img, label_input))
+                pred = self.model((img, label_input, language_id))
             else:
                 pred = self.model((img,))
 

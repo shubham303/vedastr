@@ -27,9 +27,9 @@ class TransformerEncoderLayer1D(_TransformerEncoderLayer):
               self).__init__(attention, attention_norm, feedforward,
                              feedforward_norm)
 
-    def forward(self, src, src_mask=None):
-        attn_out, _ = self.attention(src, src, src, src_mask)
-        out1 = self.attention_norm(src + attn_out)
+    def forward(self,query,key, value, src_mask=None):
+        attn_out, _ = self.attention( query,key, value, src_mask)
+        out1 = self.attention_norm(query + attn_out)
 
         ffn_out = self.feedforward(out1)
         out2 = self.feedforward_norm(out1 + ffn_out)
@@ -58,15 +58,15 @@ class TransformerEncoderLayer2D(_TransformerEncoderLayer):
 
         return out
 
-    def forward(self, src, src_mask=None):
-        b, c, h, w = src.size()
+    def forward(self, query,key, value, src_mask=None):
+        b, c, h, w = query.size()
 
-        src = src.view(b, c, h * w).transpose(1, 2)
+        query = query.view(b, c, h * w).transpose(1, 2)
         if src_mask is not None:
             src_mask = src_mask.view(b, 1, h * w)
 
-        attn_out, _ = self.attention(src, src, src, src_mask)
-        out1 = src + attn_out
+        attn_out, _ = self.attention(query, key, value, src_mask)
+        out1 = query + attn_out
         out1 = out1.transpose(1, 2).contiguous().view(b, c, h, w)
         out1 = self.norm(self.attention_norm, out1)
 

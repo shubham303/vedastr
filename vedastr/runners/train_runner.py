@@ -1,5 +1,6 @@
 import os.path as osp
 
+import abfn.configuration
 import torch
 import torch.utils.data as tud
 
@@ -123,17 +124,19 @@ class TrainRunner(InferenceRunner):
         self.model.train()
 
         self.optimizer.zero_grad()
-
-        label_input, label_len, label_target = self.converter.train_encode(label)  # noqa 501
+        label_input, label_len, label_target , language_id = self.converter.train_encode(label)  # noqa 501
         if self.use_gpu:
             img = img.cuda()
             label_input = label_input.cuda()
             label_target = label_target
             label_len = label_len
+            language_id = language_id.cuda()
+        
         if self.need_text:
-            pred = self.model((img, label_input))
+            pred = self.model((img, label_input, language_id))
         else:
             pred = self.model((img,))
+            
         loss = self.criterion(pred, label_target, label_len, img.shape[0])
         all_loss = gather_tensor(loss.detach())
         gather_loss = torch.mean(all_loss)
@@ -161,13 +164,16 @@ class TrainRunner(InferenceRunner):
 
     def _validate_batch(self, img, label, exclude_num):
         self.model.eval()
+        from abfn import abfn
+
         with torch.no_grad():
-            label_input, label_length, label_target = self.converter.test_encode(label)  # noqa 501
+            label_input, label_length, label_target, language_id = self.converter.test_encode(label)  # noqa 501
             if self.use_gpu:
                 img = img.cuda()
                 label_input = label_input.cuda()
+                language_id = language_id.cuda()
             if self.need_text:
-                pred = self.model((img, label_input))
+                pred = self.model((img, label_input, language_id))
             else:
                 pred = self.model((img,))
 

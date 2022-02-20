@@ -126,3 +126,5 @@ tools/wandb
 wandb/
 /tools/cdisnet_predictions/
 /tools/satrn_predictions/
+/tools/correct/
+/tools/incorrect/
