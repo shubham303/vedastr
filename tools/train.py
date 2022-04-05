@@ -1,4 +1,5 @@
-# uncommenting below lines will disable cuda for this program.
+# uncommenting below lines will disable cuda for this program. This could be helpful during debugging errors for
+# which stacktrace is not available for gpu based execution
 """import torch
 torch.cuda.is_available = lambda  : False
 torch.cuda.device_count = lambda  : 1
@@ -9,12 +10,12 @@ import os
 import shutil
 import sys
 
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 from vedastr.runners import TrainRunner  # noqa 402
 from vedastr.utils import Config  # noqa 402
 
-#import wandb
 
 
 

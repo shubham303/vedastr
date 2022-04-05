@@ -7,19 +7,20 @@ import albumentations.augmentations.functional as F
 import cv2
 import numpy as np
 import torch
+import torchvision
 from PIL.Image import Image
 from albumentations import DualTransform, ImageOnlyTransform
 import random
-"""from straug.blur import GaussianBlur, DefocusBlur, MotionBlur, GlassBlur, ZoomBlur
+from straug.blur import GaussianBlur, DefocusBlur, MotionBlur, GlassBlur, ZoomBlur
 import straug
-from straug.camera import Contrast, Brightness, JpegCompression, Pixelate"""
-"""from straug.geometry import Rotate, Perspective, Shrink, TranslateX, TranslateY
+from straug.camera import Contrast, Brightness, JpegCompression, Pixelate
+from straug.geometry import Rotate, Perspective, Shrink, TranslateX, TranslateY
 from straug.noise import GaussianNoise, ShotNoise, ImpulseNoise, SpeckleNoise
 from straug.pattern import VGrid, HGrid, Grid, RectGrid, EllipseGrid
 from straug.process import Posterize, Solarize, Invert, Equalize, AutoContrast, Sharpness, Color
 from straug.warp import Curve, Distort, Stretch
 from straug.weather import Fog, Snow, Frost, Rain, Shadow
-"""
+from torchvision.transforms import transforms
 
 from .registry import TRANSFORMS
 
@@ -675,7 +676,7 @@ class TIA(DualTransform):
 			])
 		return src_pts, dst_pts, img_w, img_h
 
-"""
+
 @TRANSFORMS.register_module
 class StrAug(ImageOnlyTransform):
 	
@@ -685,7 +686,6 @@ class StrAug(ImageOnlyTransform):
 		self.exclude_list = exclude_list
 		self.prob = prob
 		rng = np.random.default_rng(seed)
-		curve=Curve(rng)
 		self.perspective = [Curve(rng=rng), straug.geometry.Rotate(rng=rng), Perspective(rng), Distort(rng),
 		                   Stretch(rng),
 		       Shrink(rng),
@@ -694,11 +694,10 @@ class StrAug(ImageOnlyTransform):
 		self.grid= [VGrid(rng), HGrid(rng), Grid(rng), RectGrid(rng), EllipseGrid(rng)]
 		self.noise=[GaussianNoise(rng), ShotNoise(rng), ImpulseNoise(rng), SpeckleNoise(rng)]
 		self.blur=[GaussianBlur(rng), DefocusBlur(rng), MotionBlur(rng), GlassBlur(rng), ZoomBlur(rng)]
-		#ops.extend([Contrast(rng), Brightness(rng), JpegCompression(rng), Pixelate(rng)])
+		self.contrast = [Contrast(rng), Brightness(rng), JpegCompression(rng), Pixelate(rng)]
 		self.fog=[Fog(rng), Snow(rng), Frost(rng), Rain(rng), Shadow(rng)]
-		#ops.extend(
-		#	[Posterize(rng), Solarize(rng), Invert(rng), Equalize(rng), AutoContrast(rng), Sharpness(rng), Color(rng)])
-		self.ops=self.perspective+self.grid+self.noise+self.blur+self.fog
+		self.posterize=[Posterize(rng), Solarize(rng), Invert(rng), Equalize(rng), AutoContrast(rng), Sharpness(rng), Color(rng)]
+		self.ops=self.perspective+self.blur+self.fog + self.contrast + self.posterize
 		
 		
 	def __call__(self, force_apply=False, **kwargs):
@@ -707,6 +706,7 @@ class StrAug(ImageOnlyTransform):
 			return kwargs
 		try:
 			img = kwargs['image']
+		
 			op = random.choice(self.ops)
 			if op in self.grid:
 				mag =0
@@ -717,10 +717,33 @@ class StrAug(ImageOnlyTransform):
 				
 			img= PIL.Image.fromarray(img)
 			out_img = np.array(op(img, mag=mag))
-			#i = random.randint(0, 1000000)
-			#cv2.imwrite("images/{}_{}.jpg".format(kwargs["label"], i), out_img)
+			i = random.randint(0, 1000000)
+			cv2.imwrite("images/{}_{}.jpg".format(kwargs["label"], i), out_img)
 			kwargs['image']=out_img
 		except Exception:
 			print("error occurred during straug transform")
+			raise Exception
 		return kwargs
-"""
+
+@TRANSFORMS.register_module
+class RandomPad(ImageOnlyTransform):
+	
+	def __init__(self, prob=0.1, **kwargs):
+		super(RandomPad).__init__(**kwargs)
+		self.prob = prob
+		
+	def __call__(self, force_apply=False, **kwargs):
+		if random.random() < self.prob:
+			img = kwargs['image']
+			img = PIL.Image.fromarray(img)
+			padding = torchvision.transforms.Pad( [random.randint(0,15),random.randint(0,10),random.randint(0,15),
+			                                  random.randint(0,10)], fill=(random.randint(0,255),random.randint(0,255),
+			                                                               random.randint(0,255)) )
+		
+			
+			kwargs['image'] = np.array(padding(img))
+			
+		"""i = random.randint(0, 1000000)
+		cv2.imwrite("images/{}_{}.jpg".format(kwargs["label"], i), kwargs['image'])"""
+		return kwargs
+	

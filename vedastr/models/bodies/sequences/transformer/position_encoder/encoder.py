@@ -14,7 +14,7 @@ class PositionEncoder1D(nn.Module):
         position_encoder = position_encoder.unsqueeze(0)
         self.register_buffer('position_encoder', position_encoder)
         self.dropout = nn.Dropout(p=dropout)
-
+        
     def forward(self, x):
         out = x + self.position_encoder[:, :x.size(1), :]
         out = self.dropout(out)

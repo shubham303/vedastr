@@ -217,3 +217,17 @@ def requires_executable(prerequisites):
         1
     """
     return check_prerequisites(prerequisites, checker=_check_executable)
+
+
+def bisect(lst, value, key=None):
+    if key is None:
+        key = lambda x: x
+    def bis(lo, hi=len(lst)):
+        while lo < hi:
+            mid = (lo + hi) // 2
+            if key(lst[mid]) < value:
+                lo = mid + 1
+            else:
+                hi = mid
+        return lo
+    return bis(0)

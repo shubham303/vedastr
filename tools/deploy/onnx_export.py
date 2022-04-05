@@ -1,12 +1,20 @@
 import argparse
 import os
 import sys
+
+import numpy as np
 import torch
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../'))
 
 import cv2  # noqa 402
 from vedastr.runners import InferenceRunner  # noqa 402
 from vedastr.utils import Config  # noqa 402
+
+
+def grid_sample_op(g, input1, input2, mode, padding_mode, align_corners):
+    return g.op("torch::grid_sampler", input1, input2, mode, padding_mode, align_corners)
+
+torch.onnx.register_custom_op_symbolic('::grid_sampler', grid_sample_op, 11)
 
 
 def parse_args():
@@ -67,26 +75,30 @@ def main():
     runner.load_checkpoint(args.checkpoint)
 
     image = cv2.imread(args.image)
-
+    beam_size = 0
     aug = runner.transform(image=image, label='')
     image, label = aug['image'], aug['label']  # noqa 841
     image = image.unsqueeze(0).cuda()
-    dummy_input = (image, runner.converter.test_encode([''])[0])
+    dummy_input = [image, runner.converter.test_encode([''])[0]]
     model = runner.model.cuda().eval()
+    
     need_text = runner.need_text
+    
     if not need_text:
         dummy_input = dummy_input[0]
     
-    torch.onnx.export(model,  # model being run
+    torch_out = model(dummy_input)
+    
+    """torch.onnx.export(model,  # model being run
                       dummy_input,  # model input (or a tuple for multiple inputs)
                       "super_resolution.onnx",  # where to save the model (can be a file or file-like object)
                       export_params=True,  # store the trained parameter weights inside the model file
-                      opset_version=10,  # the ONNX version to export the model to
+                      opset_version=11,  # the ONNX version to export the model to
                       do_constant_folding=True,  # whether to execute constant folding for optimization
-                      input_names=['input'],  # the model's input names
+                      input_names=['input' , 'label'],  # the model's input names
                       output_names=['output'],  # the model's output names
                       dynamic_axes={'input': {0: 'batch_size'},  # variable length axes
-                                    'output': {0: 'batch_size'}})
+                                    'output': {0: 'batch_size'}})"""
     
     
     import onnx
@@ -97,6 +109,18 @@ def main():
     runner.logger.info(
         'Convert successfully, save model to {}'.format(out_name))
 
+    import onnxruntime
+
+    ort_session = onnxruntime.InferenceSession("super_resolution.onnx")
+
+    def to_numpy(tensor):
+        return tensor.detach().cpu().numpy() if tensor.requires_grad else tensor.cpu().numpy()
+
+    # compute ONNX Runtime output prediction
+    ort_inputs = {ort_session.get_inputs()[0].name: to_numpy(dummy_input)}
+    ort_outs = ort_session.run(None, ort_inputs)
+
+    np.testing.assert_allclose(to_numpy(torch_out), ort_outs[0], rtol=1e-03, atol=1e-05)
 
 if __name__ == '__main__':
     main()

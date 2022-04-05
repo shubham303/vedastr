@@ -1,3 +1,9 @@
+# uncommenting below lines will disable cuda for this program.
+"""import torch
+torch.cuda.is_available = lambda  : False
+torch.cuda.device_count = lambda  : 1"""
+
+
 import argparse
 import os
 import sys

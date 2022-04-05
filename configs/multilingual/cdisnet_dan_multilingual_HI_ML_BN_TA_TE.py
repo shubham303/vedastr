@@ -119,7 +119,7 @@ num_characters = len(character) + 2  # extra go and end character.
 num_class = len(character) + 1  # [GO] character is not in prediction list.
 hidden_dim = 512
 hidden_dim_cbi = hidden_dim
-n_head = 8
+n_head = 4
 layer_norm = dict(type='LayerNorm', normalized_shape=hidden_dim)
 layer_norm_cbi = dict(type='LayerNorm', normalized_shape=hidden_dim)
 
@@ -365,38 +365,45 @@ inference = dict(
 				),
 				d_model=hidden_dim,
 				pos_mask=generate_square_subsequent_mask,
-				vis_mask=src_mask_attend_only_neighbour_tokens,
+				vis_mask=generate_square_subsequent_mask,
 				sem_mask=generate_square_subsequent_mask,
 				vis_mask_range=2,
+				sem_mask_range = 5,
 				activation=dict(
 					type="Sigmoid"
 				)
 			)
-			for i in range(0, 1)],
+			for i in range(0, 3)],
 		language_embedding=dict(
-			type="GBody",
-			pipelines=[
-				
-				dict(
-					type='EmbeddingComponent',
-					from_layer='input',
-					to_layer='language_embedding',
-					arch=dict(
-						type='Embedding',
-						num_embeddings=len(languages) + 1,  # num_embedding is 1 extra than total
-						# number of
-						# languages.
-						embedding_dim=hidden_dim,  #
-					)
+					type="TransformerUnit",
+					encoder_layer=dict(
+						type="TransformerEncoderLayer1D",
+						attention=dict(
+							type='MultiHeadAttention',
+							in_channels=hidden_dim_cbi,
+							k_channels=hidden_dim_cbi // 1,
+							v_channels=hidden_dim_cbi // 1,
+							n_head=1,
+							dropout=dropout,
+						),
+						attention_norm=layer_norm_cbi,
+						feedforward=dict(
+							type='Feedforward',
+							layers=[
+								dict(type='FCModule', in_channels=hidden_dim_cbi, out_channels=hidden_dim_cbi * 2,
+								     bias=True,
+								     activation='relu', dropout=dropout),
+								dict(type='FCModule', in_channels=hidden_dim_cbi * 2, out_channels=hidden_dim_cbi,
+								     bias=True,
+								     activation=None, dropout=dropout),
+							],
+						),
+						feedforward_norm=layer_norm_cbi,
+					),
+					num_layers=1,
+					position_encoder=None,
+					embedding=None
 				),
-				dict(
-					type="PlugComponent",
-					from_layer="language_embedding",
-					to_layer="linear_layer",
-					arch=dict(type='FCModule', in_channels=hidden_dim, out_channels=hidden_dim, dropout=dropout)),
-			],
-			collect=dict(type='CollectBlock', from_layer='linear_layer')
-		),
 		need_text=True,
 		max_seq_len=batch_max_length + 1,
 		d_model=hidden_dim,
@@ -529,5 +536,5 @@ train = dict(
 	max_iterations_val=500,  # 10 percent of train_val ratio.
 	snapshot_interval=10000,
 	save_best=True,
-	resume=dict(checkpoint="/home/shubham/Documents/MTP/text-recognition-models/vedastr/tools/workdir/cdisnet_dan_multilingual_HI_ML_BN_TA_TE (copy)/best_acc.pth")
+	resume=None
 )

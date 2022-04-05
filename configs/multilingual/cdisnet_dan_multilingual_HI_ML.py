@@ -7,7 +7,7 @@ test_character = 'ऀँंऄअआइईउऊऋऌऍऎएऐऑऒओऔ�
 batch_max_length = 25
 test_folder_names = ["2", "3", "4", "5", "6", "7"]  ###
 
-languages = ["HI", "ML"]
+languages = ["HI", "ML" , "KN", "TA", "TE", "OR", "GUR", "GU","BN"]
 data_roots = ['/usr/datasets/synthetic_text_dataset/lmdb_dataset/hindi/',
               '/usr/datasets/synthetic_text_dataset/lmdb_dataset/malayalam/']
 
@@ -345,15 +345,15 @@ inference = dict(
 				vis_mask=src_mask_attend_only_neighbour_tokens,
 				sem_mask=generate_square_subsequent_mask,
 				vis_mask_range=2,
+				sem_mask_range = 5,
 				activation=dict(
 					type="Sigmoid"
 				)
 			)
-			for i in range(0, 1)],
+			for i in range(0, 3)],
 		language_embedding=dict(
 			type="GBody",
 			pipelines=[
-				
 				dict(
 					type='EmbeddingComponent',
 					from_layer='input',

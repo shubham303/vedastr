@@ -26,6 +26,7 @@ class InferenceRunner(Common):
         self.logger.info(self.model)
         self.postprocess_cfg = inference_cfg.get('postprocess', None)
         self.model.eval()
+        self.beam=inference_cfg.get('beam_size', False)
 
     def _build_model(self, cfg):
         self.logger.info('Build model')
@@ -36,7 +37,8 @@ class InferenceRunner(Common):
             params_num.append(np.prod(p.size()))
         self.logger.info('Trainable params num : %s' % (sum(params_num)))
         self.need_text = model.need_text
-
+        self.need_lang = model.need_lang
+        
         if self.use_gpu:
             if self.distribute:
                 model = torch.nn.parallel.DistributedDataParallel(
@@ -74,8 +76,17 @@ class InferenceRunner(Common):
             sensitive = True
             character = ''
 
-        probs = F.softmax(preds, dim=2)
-        max_probs, indexes = probs.max(dim=2)
+        if type(preds) is tuple:            # if preds is tuple, then it contains preds and beam search indexes
+            preds, indexes = preds
+            probs = F.softmax(preds, dim=2)
+            max_probs = torch.empty_like(indexes, dtype=torch.float)
+            for i in range(max_probs.size(0)):
+                for j in range(max_probs.size(1)):
+                    max_probs[i, j] = probs[i][j][indexes[i][j]]
+        else:
+            probs = F.softmax(preds, dim=2)
+            max_probs, indexes = probs.max(dim=2)
+        
         preds_str = []
         preds_prob = []
         for i, pstr in enumerate(self.converter.decode(indexes)):
@@ -94,31 +105,27 @@ class InferenceRunner(Common):
             preds_str.append(pstr)
         return preds_str, preds_prob
 
-    """def beam_search_decoder(self, predictions, top_k = 3):
-        output_sequences = [([], 0)]
-        
-        for tokens_probs  in predictions:
-            new_sequence =[]
-            for old_seq, old_score in output_sequences:
-                for char_index in range(len(tokens_probs)):
-                    new"""
     def __call__(self, image):
         with torch.no_grad():
             dummy_text = ''
             aug = self.transform(image=image, label=dummy_text)
             image, text = aug['image'], aug['label']
             image = image.unsqueeze(0)
-            label_input, label_length, label_target = self.converter.test_encode([text])  # noqa 501
+            label_input, label_length, label_target, lang_id,  = self.converter.test_encode([text])  # noqa 501
             if self.use_gpu:
                 image = image.cuda()
                 label_input = label_input.cuda()
-                
+            
+            
+            input = (image,)
+            
             if self.need_text:
-                pred = self.model((image, label_input))
-            else:
-                pred = self.model((image,))
+                input += (label_input,)
+            
+            if self.need_lang:
+                input+=(lang_id,)
                 
-          
+            pred = self.model(input)
             pred, prob = self.postprocess(pred, self.postprocess_cfg)
 
         return pred, prob

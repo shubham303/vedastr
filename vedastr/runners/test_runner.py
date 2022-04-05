@@ -30,13 +30,17 @@ class TestRunner(InferenceRunner):
             if self.use_gpu:
                 img = img.cuda()
                 label_input = label_input.cuda()
-                language_id = language_id.cuda()
-                
-            if self.need_text:
-                pred = self.model((img, label_input, language_id))
-            else:
-                pred = self.model((img,))
+                lang_id = language_id.cuda()
 
+            input = (img,)
+
+            if self.need_text:
+                input += (label_input,)
+
+            if self.need_lang:
+                input += (lang_id,)
+
+            pred = self.model(input)
             pred, prob = self.postprocess(pred, self.postprocess_cfg)
            
             if save_path is not None:
@@ -47,13 +51,12 @@ class TestRunner(InferenceRunner):
                         import editdistance
                         d = editdistance.eval(p, l)
                         path= os.path.join(save_path, "incorrect/{}/".format(d))
-                        
-                    #print(p, '\t', l)
+                       
                     cimg = img[idx][0, :, :].cpu().numpy()
                     cimg = (cimg * 0.5) + 0.5
                     if not os.path.exists(path):
                         os.mkdir(path)
-                        
+                    
                     cv2.imwrite(path + f'/%s_{p}_{l}.png' % idx,
                                 (cimg * 255).astype(np.uint8))
                     

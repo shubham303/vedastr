@@ -1,8 +1,8 @@
 import abc
 
 import torch
-from abfn import abfn
 
+from abfn import abfn
 from .registry import CONVERTERS
 
 
@@ -25,7 +25,9 @@ class BaseConverter(object):
             num = len(text)
             language_id = torch.LongTensor(len(text))
             for idx, t in enumerate(text):
-                lang = abfn.detect_lang(t)
+                #TODO this part of implementation is wrong. during  inference time text is empty. change this
+                # logic.
+                lang = abfn.detect_language(t)
                 if lang not in self.language_list:
                     print("word: {} not in language list. check if language codes defined in config files are "
                           "correct".format(t))
@@ -40,8 +42,10 @@ class BaseConverter(object):
                 f'but got {type(text)}'
             )
         ignore_index = self.ignore_index
+        
         if ignore_index is None:
             ignore_index = 0
+            
         batch_text = torch.LongTensor(num, 1).fill_(ignore_index)
         length = [1 for i in range(num)]
 

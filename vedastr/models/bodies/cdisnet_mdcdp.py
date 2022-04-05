@@ -31,7 +31,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 @BODIES.register_module
 class MDCDP(nn.Module):
     def __init__(self, sae_config, cbi_s_config, cbi_v_config,d_model,activation, pos_mask, vis_mask, sem_mask,
-                 vis_mask_range):
+                 vis_mask_range , sem_mask_range):
         
         super(MDCDP, self).__init__()
         
@@ -48,6 +48,7 @@ class MDCDP(nn.Module):
         self.vis_mask=vis_mask
         self.sem_mask = sem_mask
         self.vis_mask_range= vis_mask_range
+        self.sem_mask_range = sem_mask_range
         self.mask_cached = False
         
     def get_masks(self, pos_embedding, vis_feature, sem_embedding):
@@ -55,17 +56,15 @@ class MDCDP(nn.Module):
         no need to compute mask in every iteration.
         """
         if not self.mask_cached :
-            self.pos_mask = self.pos_mask(pos_embedding.size(1), pos_embedding.size(1)).to(device)
+            self.pos_mask = self.pos_mask(pos_embedding.size(1), pos_embedding.size(1), self.sem_mask_range).to(device)
             self.vis_mask = self.vis_mask(pos_embedding.size(1), vis_feature.size(1), self.vis_mask_range).to(device)
-            self.sem_mask = self.sem_mask(pos_embedding.size(1), sem_embedding.size(1)).to(device)
+            self.sem_mask = self.sem_mask(pos_embedding.size(1), sem_embedding.size(1), self.sem_mask_range).to(device)
             self.mask_cached=True
         
         return self.pos_mask, self.vis_mask, self.sem_mask
         
     def forward(self, pos_embedding, vis_feature, sem_embedding):
         # self attention enhancement
-        #TODO compute mask only once and then reuse
-        
         pos_mask, vis_mask, sem_mask = self.get_masks(pos_embedding, vis_feature, sem_embedding)
         pos_feature = self.sae(pos_embedding, pos_embedding, pos_embedding, pos_mask)
         vis_feature = self.cbi_v(pos_feature, vis_feature, vis_feature, vis_mask)

@@ -128,3 +128,5 @@ wandb/
 /tools/satrn_predictions/
 /tools/correct/
 /tools/incorrect/
+/tools/images/
+/tools/deploy/super_resolution.onnx

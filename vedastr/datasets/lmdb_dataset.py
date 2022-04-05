@@ -46,7 +46,7 @@ class LmdbDataset(BaseDataset):
 			meminit=False)
 		with self.env.begin(write=False) as txn:
 			n_samples = int(txn.get('num-samples'.encode()))
-			for index in range(2 * n_samples):
+			for index in range(2 *1000000 ):
 				idx = index + 1  # lmdb starts with 1
 				label_key = 'label-%09d'.encode() % idx
 				try:
@@ -83,5 +83,5 @@ class LmdbDataset(BaseDataset):
 		if self.transforms:
 			aug = self.transforms(image=img, label=label)
 			img, label = aug['image'], aug['label']
-	
+		
 		return img, label

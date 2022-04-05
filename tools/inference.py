@@ -44,6 +44,7 @@ def main():
         images = [
             os.path.join(args.image, name) for name in os.listdir(args.image)
         ]
+    images.sort()
     for img in images:
         label=""
         if len(img) ==2 :

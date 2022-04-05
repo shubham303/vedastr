@@ -107,12 +107,14 @@ class FPN(nn.Module):
 		nT = A.size()[1]
 		# Normalize
 		A = A / A.view(nB, nT, -1).sum(2).view(nB, nT, 1, 1)
-		# q = A.cpu().detach().numpy()[0]
-		# from matplotlib import pyplot as plt
 		
-		# for i in range(len(q)) :
-		# plt.imshow(q[i])
-		# plt.savefig("attn_{}.png".format(i))
+		#print attention maps
+		"""q = A.cpu().detach().numpy()[0]
+		from matplotlib import pyplot as plt
+		
+		for i in range(len(q)) :
+			plt.imshow(q[i])
+			plt.savefig("attn_{}.png".format(i))"""
 		
 		# weighted sum
 		C = x[-1].view(nB, 1, nC, nH, nW) * A.view(nB, nT, 1, nH, nW)

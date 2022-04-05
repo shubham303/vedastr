@@ -1,6 +1,5 @@
 import os.path as osp
 
-import abfn.configuration
 import torch
 import torch.utils.data as tud
 
@@ -130,12 +129,15 @@ class TrainRunner(InferenceRunner):
             label_input = label_input.cuda()
             label_target = label_target
             label_len = label_len
-            language_id = language_id.cuda()
-        
+            lang_id = language_id.cuda()
+
+        input = (img,)
         if self.need_text:
-            pred = self.model((img, label_input, language_id))
-        else:
-            pred = self.model((img,))
+            input += (label_input,)
+        if self.need_lang:
+            input += (lang_id,)
+
+        pred = self.model(input)
             
         loss = self.criterion(pred, label_target, label_len, img.shape[0])
         all_loss = gather_tensor(loss.detach())
@@ -145,11 +147,11 @@ class TrainRunner(InferenceRunner):
             torch.nn.utils.clip_grad_norm_(self.model.parameters(),
                                            self.grad_clip)
         self.optimizer.step()
-
+        
         with torch.no_grad():
             pred, prob = self.postprocess(pred)
             self.metric.measure(pred, prob, label)
-
+        
         if self.iter != 0 and self.iter % self.log_interval == 0:
             self.logger.info(
                 'Train, Epoch %d, Iter %d, LR %s, Loss %.4f, '
@@ -164,19 +166,25 @@ class TrainRunner(InferenceRunner):
 
     def _validate_batch(self, img, label, exclude_num):
         self.model.eval()
-        from abfn import abfn
+
 
         with torch.no_grad():
             label_input, label_length, label_target, language_id = self.converter.test_encode(label)  # noqa 501
             if self.use_gpu:
                 img = img.cuda()
                 label_input = label_input.cuda()
-                language_id = language_id.cuda()
-            if self.need_text:
-                pred = self.model((img, label_input, language_id))
-            else:
-                pred = self.model((img,))
+                lang_id = language_id.cuda()
 
+            input = (img,)
+
+            if self.need_text:
+                input += (label_input,)
+
+            if self.need_lang:
+                input += (lang_id,)
+
+            pred = self.model(input)
+                
             pred, prob = self.postprocess(pred, self.postprocess_cfg)
             self.metric.measure(pred, prob, label, exclude_num)
 

@@ -36,7 +36,7 @@ class AttnConverter(BaseConverter):
             text = [self.dict[char] for char in text]
             batch_text[idx][1:1 + len(text)] = torch.LongTensor(text)
         
-            lang = abfn.detect_lang(t)
+            lang = abfn.detect_language(t)
             if lang not in self.language_list:
                 print("word: {} not in language list. check if language codes defined in config files are "
                       "correct".format(t) )
