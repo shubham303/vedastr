@@ -1,110 +1,99 @@
 # language specific changes:
 import os.path
 
-from vedastr.attention_masks.masks import generate_square_subsequent_mask, src_mask_attend_only_neighbour_tokens
+from vedastr.attention_masks.masks import generate_square_subsequent_mask, src_mask_attend_only_neighbour_tokens, \
+	diagonal_mask
 
-character = "ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ०१२३४५६७८९ॲஂஃஅஆஇஈஉஊஎஏஐஒஓஔக஗ஙசஜஞடணதநனப஬மயரறலளழவஶஷஸஹ஻஼஽ாிீுூெேைொோௌ்௏ௐௗ௘௛௞௦௧௨௩௪௫௬௭௮௯௰௱௲௳௴௵௶௷௸௹௺ഀഁംഃഄഅആഇഈഉഊഋഌഎഏഐഒഓഔകഖഗഘങചഛജഝഞടഠഡഢണതഥദധനഩപഫബഭമയരറലളഴവശഷസഹഺ഻഼ഽാിീുൂൃൄെേൈൊോൌ്ൎ൏ൔൕൖൗ൘൙൚൛൜൝൞ൟൠൡൢൣ൦൧൨൩൪൫൬൭൮൯൰൱൲൳൴൵൶൷൸൹ൺൻർൽൾൿঀঁংঃঅআইঈউঊঋঌএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরল঳঴঵শষসহ়ঽািীুূৃৄেৈোৌ্ৎৗড়ঢ়য়ৠৡৢৣ০১২৩৪৫৬৭৮৯ৰৱ৲৳৴৵৶৷৸৹৺৻ৼ৽৾ఁంఃఄఅఆఇఈఉఊఋఌఎఏఐఒఓఔకఖగఘఙచఛజఝఞటఠడఢణతథదధనపఫబభమయరఱలళఴవశషసహఽాిీుూృౄెేైొోౌ్ౕౖౘౙౚౠౡౢౣ౦౧౨౩౪౫౬౭౮౯౱౷౸౹౺౻౼౽౾౿"
+character = "ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ०१२३४५६७८९ॲঀঁংঃঅআইঈউঊঋঌএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরল঳঴঵শষসহ়ঽািীুূৃৄেৈোৌ্ৎৗড়ঢ়য়ৠৡৢৣ০১২৩৪৫৬৭৮৯ৰৱ৲৳৴৵৶৷৸৹৺৻ৼ৽৾ഀഁംഃഄഅആഇഈഉഊഋഌഎഏഐഒഓഔകഖഗഘങചഛജഝഞടഠഡഢണതഥദധനഩപഫബഭമയരറലളഴവശഷസഹഺ഻഼ഽാിീുൂൃൄെേൈൊോൌ്ൎ൏ൔൕൖൗ൘൙൚൛൜൝൞ൟൠൡൢൣ൦൧൨൩൪൫൬൭൮൯൰൱൲൳൴൵൶൷൸൹ൺൻർൽൾൿஂஃஅஆஇஈஉஊஎஏஐஒஓஔக஗ஙசஜஞடணதநனப஬மயரறலளழவஶஷஸஹ஻஼஽ாிீுூெேைொோௌ்௏ௐௗ௘௛௞௦௧௨௩௪௫௬௭௮௯௰௱௲௳௴௵௶௷௸௹௺ఁంఃఄఅఆఇఈఉఊఋఌఎఏఐఒఓఔకఖగఘఙచఛజఝఞటఠడఢణతథదధనపఫబభమయరఱలళఴవశషసహఽాిీుూృౄెేైొోౌ్ౕౖౘౙౚౠౡౢౣ౦౧౨౩౪౫౬౭౮౯౱౷౸౹౺౻౼౽౾౿"
 test_sensitive = False
-test_character = \
-	"ऀँंऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ०१२३४५६७८९ॲஂஃஅஆஇஈஉஊஎஏஐஒஓஔக஗ஙசஜஞடணதநனப஬மயரறலளழவஶஷஸஹ஻஼஽ாிீுூெேைொோௌ்௏ௐௗ௘௛௞௦௧௨௩௪௫௬௭௮௯௰௱௲௳௴௵௶௷௸௹௺ഀഁംഃഄഅആഇഈഉഊഋഌഎഏഐഒഓഔകഖഗഘങചഛജഝഞടഠഡഢണതഥദധനഩപഫബഭമയരറലളഴവശഷസഹഺ഻഼ഽാിീുൂൃൄെേൈൊോൌ്ൎ൏ൔൕൖൗ൘൙൚൛൜൝൞ൟൠൡൢൣ൦൧൨൩൪൫൬൭൮൯൰൱൲൳൴൵൶൷൸൹ൺൻർൽൾൿঀঁংঃঅআইঈউঊঋঌএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরল঳঴঵শষসহ়ঽািীুূৃৄেৈোৌ্ৎৗড়ঢ়য়ৠৡৢৣ০১২৩৪৫৬৭৮৯ৰৱ৲৳৴৵৶৷৸৹৺৻ৼ৽৾ఁంఃఄఅఆఇఈఉఊఋఌఎఏఐఒఓఔకఖగఘఙచఛజఝఞటఠడఢణతథదధనపఫబభమయరఱలళఴవశషసహఽాిీుూృౄెేైొోౌ్ౕౖౘౙౚౠౡౢౣ౦౧౨౩౪౫౬౭౮౯౱౷౸౹౺౻౼౽౾౿"
+test_character = "ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ०१२३४५६७८९ॲঀঁংঃঅআইঈউঊঋঌএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরল঳঴঵শষসহ়ঽািীুূৃৄেৈোৌ্ৎৗড়ঢ়য়ৠৡৢৣ০১২৩৪৫৬৭৮৯ৰৱ৲৳৴৵৶৷৸৹৺৻ৼ৽৾ഀഁംഃഄഅആഇഈഉഊഋഌഎഏഐഒഓഔകഖഗഘങചഛജഝഞടഠഡഢണതഥദധനഩപഫബഭമയരറലളഴവശഷസഹഺ഻഼ഽാിീുൂൃൄെേൈൊോൌ്ൎ൏ൔൕൖൗ൘൙൚൛൜൝൞ൟൠൡൢൣ൦൧൨൩൪൫൬൭൮൯൰൱൲൳൴൵൶൷൸൹ൺൻർൽൾൿஂஃஅஆஇஈஉஊஎஏஐஒஓஔக஗ஙசஜஞடணதநனப஬மயரறலளழவஶஷஸஹ஻஼஽ாிீுூெேைொோௌ்௏ௐௗ௘௛௞௦௧௨௩௪௫௬௭௮௯௰௱௲௳௴௵௶௷௸௹௺ఁంఃఄఅఆఇఈఉఊఋఌఎఏఐఒఓఔకఖగఘఙచఛజఝఞటఠడఢణతథదధనపఫబభమయరఱలళఴవశషసహఽాిీుూృౄెేైొోౌ్ౕౖౘౙౚౠౡౢౣ౦౧౨౩౪౫౬౭౮౯౱౷౸౹౺౻౼౽౾౿"
 batch_max_length = 25
-test_folder_names = ["kaggle_train", "kaggle_val" ,"1", "2", "3", "4", "5", "6", "7"]  ###
+test_folder_names = ["kaggle_train", "kaggle_val", "1", "2", "3", "4", "5", "6", "7", "IIIT", "icdar"]  ###
 
-languages = ["HI", "ML", "TA", "TE", "BN"]                   # note these language codes should match with language
+languages = ["HI", "ML", "TA", "TE", "BN"]  # note these language codes should match with
+# language
 # code returned by abfn module.
 
-data_roots = ['/usr/datasets/synthetic_text_dataset/lmdb_dataset/hindi/',
-              '/usr/datasets/synthetic_text_dataset/lmdb_dataset/malayalam/',
-              '/media/shubham/One Touch/Indic_OCR/recognition_dataset/bengali/',
-              '/media/shubham/One Touch/Indic_OCR/recognition_dataset/tamil/',
-              '/media/shubham/One Touch/Indic_OCR/recognition_dataset/telugu/']
+data_roots = ['/media/shubham/One Touch/Indic_OCR/recognition_dataset/tamil',
+              '/media/shubham/One Touch/Indic_OCR/recognition_dataset/bengali',
+              '/media/shubham/One Touch/Indic_OCR/recognition_dataset/telugu',
+              '/media/shubham/One Touch/Indic_OCR/recognition_dataset/hindi',
+              '/media/shubham/One Touch/Indic_OCR/recognition_dataset/malayalam',
+              ]
 
 # data_root = '/home/ocr/datasets/recognition/hindi/'
 # data_root= '/nlsasfs/home/ai4bharat/shubhamr/shubham/recognition-dataset/hindi/'
 
-#validation_folder_names = ["MJ_valid", "ST_valid"]
+validation_folder_names = ["MJ_valid", "ST_valid"]
 # validation_folder_names= [ "1","2","3", "4", "5", "6", "7" ]
-validation_folder_names=[ "kaggle_train", "kaggle_val" ,"1", "2", "3", "4", "5", "6", "7"]
+# validation_folder_names = ["kaggle_train", "kaggle_val", "1", "2", "3", "4", "5", "6", "7"]
 mj_folder_names = ['MJ_test', 'MJ_train']
 
 real_world_train_folders = ["icdar", "IIIT"]
 
 ##############################################################################################
 # dataset related configuration.
-fine_tune = True  # set to true to finetune model on real dataset.
+fine_tune = False  # set to true to finetune model on real dataset.
 train_datasets = []
 valid_datasets = []
 test_datasets = []
-
-dataset_params = dict(
-	batch_max_length=batch_max_length,
-	data_filter=True,
-	character=character,
-)
-test_dataset_params = dict(
-	batch_max_length=batch_max_length,
-	data_filter=True,
-	character=test_character,
-)
-
 for root in data_roots:
 	
-
+	dataset_params = dict(
+		batch_max_length=batch_max_length,
+		data_filter=True,
+		character=character,
+	)
+	test_dataset_params = dict(
+		batch_max_length=batch_max_length,
+		data_filter=True,
+		character=test_character,
+	)
 	
-	if not fine_tune:
-		st = root + "training/ST"
-		mj = root + "training/MJ/"
-		
-		train_dataset_mj=[]
-		for folder_name in mj_folder_names:
-			if os.path.exists(mj+folder_name):
-				train_dataset_mj.append(dict(type='LmdbDataset', root=mj + folder_name))
-		
-		
-		train_dataset_st=[]
-		if os.path.exists(st):
+	try:
+		if not fine_tune:
+			st = os.path.join(root, "training/ST")
+			mj = os.path.join(root, "training/MJ/")
+			train_dataset_mj = [dict(type='LmdbDataset', root=mj + folder_name)
+			                    for folder_name in mj_folder_names]
+			
 			train_dataset_st = [dict(type='LmdbDataset', root=st)]
-		
-		if len(train_dataset_st):
-			train_datasets.append(train_dataset_st)
-		
-		if len(train_dataset_mj)> 0:
+			
 			train_datasets.append(train_dataset_mj)
-	else:
-		train_root_real = root + "evaluation/"
-		train_dataset_real =[]
-		for folder_name in real_world_train_folders:
-			if os.path.exists(train_root_real + folder_name):
-				train_dataset_real.append(dict(type='LmdbDataset', root=train_root_real + folder_name))
+			train_datasets.append(train_dataset_st)
+			
+			valid_root = os.path.join(root, 'validation/')
+			valid_dataset = [dict(type='LmdbDataset', root=valid_root + folder_name, **test_dataset_params) for
+			                 folder_name in validation_folder_names]
+			
+			valid_datasets.append(valid_dataset)
+			
+			test_root = os.path.join(root, "evaluation/")
+			
+			test_dataset = [dict(type='LmdbDataset', root=test_root + f_name, **test_dataset_params) for f_name in
+			                test_folder_names]
+			test_datasets.extend(test_dataset)
 		
-		if len(train_dataset_real)>0:
+		else:
+			train_root_real = os.path.join(root, "evaluation/")
+			train_dataset_real = [dict(type='LmdbDataset', root=train_root_real + folder_name)
+			                      for folder_name in real_world_train_folders]
 			train_datasets.append(train_dataset_real)
 	
-	valid_root = root + 'evaluation/'
-	
-	valid_dataset = []
-	for folder_name in validation_folder_names:
-		if os.path.exists(valid_root + folder_name):
-			valid_dataset.append(dict(type='LmdbDataset', root=valid_root + folder_name, **test_dataset_params))
-	
-	if len(valid_dataset) > 0:
-		valid_datasets.append(valid_dataset)
-	
-	test_root = root + "evaluation/"
-	
-	test_dataset = []
-	for f_name in test_folder_names:
-		if os.path.exists(test_root + f_name):
-			test_dataset.append(dict(type='LmdbDataset', root=test_root + f_name, **test_dataset_params))
-	
-	test_datasets.extend(test_dataset)
+	except Exception:
+		""" Note : ("exception occurred during dataset creation. For multilingual model this exception occurs because
+		# some ""langauge dataset may not have dataset with specific name. if that is the case no need to worry.")
+		"""
+		print(Exception)
+		continue
 
 ##############################################################################################
+
 
 # work directory
 root_workdir = 'workdir'
 # sample_per_gpu
-samples_per_gpu = 64
+samples_per_gpu = 16
 ###############################################################################
 # 1. inference
 size = (32, 128)
@@ -119,7 +108,7 @@ num_characters = len(character) + 2  # extra go and end character.
 num_class = len(character) + 1  # [GO] character is not in prediction list.
 hidden_dim = 512
 hidden_dim_cbi = hidden_dim
-n_head = 4
+n_head = 8
 layer_norm = dict(type='LayerNorm', normalized_shape=hidden_dim)
 layer_norm_cbi = dict(type='LayerNorm', normalized_shape=hidden_dim)
 
@@ -145,47 +134,8 @@ inference = dict(
 			type="GBody",
 			pipelines=[
 				dict(
-					type='RectificatorComponent',
-					from_layer='input',
-					to_layer='rect',
-					arch=dict(
-						type='TPS_STN',
-						F=fiducial_num,
-						input_size=size,
-						output_size=size,
-						stn=dict(
-							feature_extractor=dict(
-								encoder=dict(
-									backbone=dict(
-										type='GBackbone',
-										layers=[
-											dict(type='ConvModule', in_channels=1, out_channels=64,
-											     kernel_size=3, stride=1, padding=1, norm_cfg=norm_cfg),
-											dict(type='MaxPool2d', kernel_size=2, stride=2),
-											dict(type='ConvModule', in_channels=64, out_channels=128,
-											     kernel_size=3, stride=1, padding=1, norm_cfg=norm_cfg),
-											dict(type='MaxPool2d', kernel_size=2, stride=2),
-											dict(type='ConvModule', in_channels=128, out_channels=256,
-											     kernel_size=3, stride=1, padding=1, norm_cfg=norm_cfg),
-											dict(type='MaxPool2d', kernel_size=2, stride=2),
-											dict(type='ConvModule', in_channels=256, out_channels=hidden_dim,
-											     kernel_size=3, stride=1, padding=1, norm_cfg=norm_cfg),
-										],
-									),
-								),
-								collect=dict(type='CollectBlock', from_layer='c3')
-							),
-							pool=dict(type='AdaptiveAvgPool2d', output_size=1),
-							head=[
-								dict(type='FCModule', in_channels=hidden_dim, out_channels=256),
-								dict(type='FCModule', in_channels=256, out_channels=fiducial_num * 2, activation=None)
-							],
-						),
-					),
-				),
-				dict(
 					type='FeatureExtractorComponent',
-					from_layer='rect',
+					from_layer='input',
 					to_layer='fpn_feat',
 					arch=dict(
 						encoder=dict(
@@ -365,46 +315,40 @@ inference = dict(
 				),
 				d_model=hidden_dim,
 				pos_mask=generate_square_subsequent_mask,
-				vis_mask=generate_square_subsequent_mask,
+				vis_mask=diagonal_mask,
 				sem_mask=generate_square_subsequent_mask,
-				vis_mask_range=2,
-				sem_mask_range = 5,
+				vis_mask_range=1,
+				sem_mask_range=200,
 				activation=dict(
 					type="Sigmoid"
 				)
 			)
 			for i in range(0, 3)],
 		language_embedding=dict(
-					type="TransformerUnit",
-					encoder_layer=dict(
-						type="TransformerEncoderLayer1D",
-						attention=dict(
-							type='MultiHeadAttention',
-							in_channels=hidden_dim_cbi,
-							k_channels=hidden_dim_cbi // 1,
-							v_channels=hidden_dim_cbi // 1,
-							n_head=1,
-							dropout=dropout,
-						),
-						attention_norm=layer_norm_cbi,
-						feedforward=dict(
-							type='Feedforward',
-							layers=[
-								dict(type='FCModule', in_channels=hidden_dim_cbi, out_channels=hidden_dim_cbi * 2,
-								     bias=True,
-								     activation='relu', dropout=dropout),
-								dict(type='FCModule', in_channels=hidden_dim_cbi * 2, out_channels=hidden_dim_cbi,
-								     bias=True,
-								     activation=None, dropout=dropout),
-							],
-						),
-						feedforward_norm=layer_norm_cbi,
-					),
-					num_layers=1,
-					position_encoder=None,
-					embedding=None
+			type="GBody",
+			pipelines=[
+				dict(
+					type='EmbeddingComponent',
+					from_layer='input',
+					to_layer='language_embedding',
+					arch=dict(
+						type='Embedding',
+						num_embeddings=len(languages) + 1,  # num_embedding is 1 extra than total
+						# number of
+						# languages.
+						embedding_dim=hidden_dim,  #
+					)
 				),
+				dict(
+					type="PlugComponent",
+					from_layer="language_embedding",
+					to_layer="linear_layer",
+					arch=dict(type='FCModule', in_channels=hidden_dim, out_channels=hidden_dim, dropout=dropout)),
+			],
+			collect=dict(type='CollectBlock', from_layer='linear_layer')
+		),
 		need_text=True,
+		need_lang=True,
 		max_seq_len=batch_max_length + 1,
 		d_model=hidden_dim,
 		num_class=num_class,
@@ -515,7 +459,7 @@ train = dict(
 				type='DataLoader',
 				samples_per_gpu=samples_per_gpu,
 				workers_per_gpu=4,
-				shuffle=False,
+				shuffle=True,
 			),
 			dataset=dict(
 				type='ConcatDatasets',
@@ -532,8 +476,8 @@ train = dict(
 	                  ),
 	max_epochs=max_epochs,
 	log_interval=50,
-	trainval_ratio=300,
-	max_iterations_val=500,  # 10 percent of train_val ratio.
+	trainval_ratio=5000,
+	max_iterations_val=300,  # 10 percent of train_val ratio.
 	snapshot_interval=10000,
 	save_best=True,
 	resume=None

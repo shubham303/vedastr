@@ -1,5 +1,6 @@
 """ref: https://github.com/Wang-Tianwei/Decoupled-attention-network"""
 import logging
+from typing import List
 
 import torch
 import torch.nn as nn
@@ -77,16 +78,16 @@ class CAM(nn.Module):
 		                             nn.Sigmoid()))
 		self.deconvs = nn.Sequential(*deconvs)
 	
-	def forward(self, input):
+	def forward(self, input: List[torch.Tensor]):
 		x = input[0]
-		for i in range(0, len(self.fpn)):
-			x = self.fpn[i](x) + input[i + 1]
+		for i , layer in enumerate(self.fpn):
+			x = layer(x) + input[i + 1]
 		conv_feats = []
-		for i in range(0, len(self.convs)):
-			x = self.convs[i](x)
+		for i , layer in enumerate(self.convs):
+			x = layer(x)
 			conv_feats.append(x)
-		for i in range(0, len(self.deconvs) - 1):
-			x = self.deconvs[i](x)
+		for i , layer in  enumerate(self.deconvs[:-1]):
+			x = layer(x)
 			x = x + conv_feats[len(conv_feats) - 2 - i]
 		x = self.deconvs[-1](x)
 		return x

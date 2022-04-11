@@ -7,8 +7,11 @@ from vedastr.attention_masks.masks import generate_square_subsequent_mask, src_m
 character ="ஂஃஅஆஇஈஉஊஎஏஐஒஓஔக஗ஙசஜஞடணதநனப஬மயரறலளழவஶஷஸஹ஻஼஽ாிீுூெேைொோௌ்௏ௐௗ௘௛௞௦௧௨௩௪௫௬௭௮௯௰௱௲௳௴௵௶௷௸௹௺ഀഁംഃഄഅആഇഈഉഊഋഌഎഏഐഒഓഔകഖഗഘങചഛജഝഞടഠഡഢണതഥദധനഩപഫബഭമയരറലളഴവശഷസഹഺ഻഼ഽാിീുൂൃൄെേൈൊോൌ്ൎ൏ൔൕൖൗ൘൙൚൛൜൝൞ൟൠൡൢൣ൦൧൨൩൪൫൬൭൮൯൰൱൲൳൴൵൶൷൸൹ൺൻർൽൾൿঀঁংঃঅআইঈউঊঋঌএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরল঳঴঵শষসহ়ঽািীুূৃৄেৈোৌ্ৎৗড়ঢ়য়ৠৡৢৣ০১২৩৪৫৬৭৮৯ৰৱ৲৳৴৵৶৷৸৹৺৻ৼ৽৾ఁంఃఄఅఆఇఈఉఊఋఌఎఏఐఒఓఔకఖగఘఙచఛజఝఞటఠడఢణతథదధనపఫబభమయరఱలళఴవశషసహఽాిీుూృౄెేైొోౌ్ౕౖౘౙౚౠౡౢౣ౦౧౨౩౪౫౬౭౮౯౱౷౸౹౺౻౼౽౾౿ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ०१२३४५६७८९ॲಀಁಂಃ಄ಅಆಇಈಉಊಋಌಎಏಐಒಓಔಕಖಗಘಙಚಛಜಝಞಟಠಡಢಣತಥದಧನಪಫಬಭಮಯರಱಲಳವಶಷಸಹ಼ಽಾಿೀುೂೃೄ೅ೆೇೈ೉ೊೋೌ್ೕೖೞೠೡೢೣ೦೧೨೩೪೫೬೭೮೯ଁଂଃଅଆଇଈଉଊଋଌଏଐଓଔକଖଗଘଙଚଛଜଝଞଟଠଡଢଣତଥଦଧନପଫବଭମଯର଱ଲଳଵଶଷସହ଼ଽାିୀୁୂୃୄେୈୋୌ୍୐ୖୗଡ଼ଢ଼ୟୠୡୢୣ୤୦୧୨୩୪୫୬୭୮୯୰ୱ୲୳୴୵୶୷ਁਂਃਅਆਇਈਉਊਏਐਓਔਕਖਗਘਙਚਛਜਝਞਟਠਡਢਣਤਥਦਧਨਪਫਬਭਮਯਰਲਲ਼ਵਸ਼ਸਹ਼ਾਿੀੁੂੇੈੋੌ੍ੑਖ਼ਗ਼ਜ਼ੜਫ਼੦੧੨੩੪੫੬੭੮੯ੰੱੲੳੴੵ੶ઁંઃઅઆઇઈઉઊઋઌઍએઐઑઓઔકખગઘઙચછજઝઞટઠડઢણતથદધનપફબભમયરલળવશષસહ઺઼ઽાિીુૂૃૄૅેૈૉોૌ્ૐૠૡૢૣ૤૥૦૧૨૩૪૫૬૭૮૯"
 test_sensitive = False
 test_character = "ஂஃஅஆஇஈஉஊஎஏஐஒஓஔக஗ஙசஜஞடணதநனப஬மயரறலளழவஶஷஸஹ஻஼஽ாிீுூெேைொோௌ்௏ௐௗ௘௛௞௦௧௨௩௪௫௬௭௮௯௰௱௲௳௴௵௶௷௸௹௺ഀഁംഃഄഅആഇഈഉഊഋഌഎഏഐഒഓഔകഖഗഘങചഛജഝഞടഠഡഢണതഥദധനഩപഫബഭമയരറലളഴവശഷസഹഺ഻഼ഽാിീുൂൃൄെേൈൊോൌ്ൎ൏ൔൕൖൗ൘൙൚൛൜൝൞ൟൠൡൢൣ൦൧൨൩൪൫൬൭൮൯൰൱൲൳൴൵൶൷൸൹ൺൻർൽൾൿঀঁংঃঅআইঈউঊঋঌএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরল঳঴঵শষসহ়ঽািীুূৃৄেৈোৌ্ৎৗড়ঢ়য়ৠৡৢৣ০১২৩৪৫৬৭৮৯ৰৱ৲৳৴৵৶৷৸৹৺৻ৼ৽৾ఁంఃఄఅఆఇఈఉఊఋఌఎఏఐఒఓఔకఖగఘఙచఛజఝఞటఠడఢణతథదధనపఫబభమయరఱలళఴవశషసహఽాిీుూృౄెేైొోౌ్ౕౖౘౙౚౠౡౢౣ౦౧౨౩౪౫౬౭౮౯౱౷౸౹౺౻౼౽౾౿ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ०१२३४५६७८९ॲಀಁಂಃ಄ಅಆಇಈಉಊಋಌಎಏಐಒಓಔಕಖಗಘಙಚಛಜಝಞಟಠಡಢಣತಥದಧನಪಫಬಭಮಯರಱಲಳವಶಷಸಹ಼ಽಾಿೀುೂೃೄ೅ೆೇೈ೉ೊೋೌ್ೕೖೞೠೡೢೣ೦೧೨೩೪೫೬೭೮೯ଁଂଃଅଆଇଈଉଊଋଌଏଐଓଔକଖଗଘଙଚଛଜଝଞଟଠଡଢଣତଥଦଧନପଫବଭମଯର଱ଲଳଵଶଷସହ଼ଽାିୀୁୂୃୄେୈୋୌ୍୐ୖୗଡ଼ଢ଼ୟୠୡୢୣ୤୦୧୨୩୪୫୬୭୮୯୰ୱ୲୳୴୵୶୷ਁਂਃਅਆਇਈਉਊਏਐਓਔਕਖਗਘਙਚਛਜਝਞਟਠਡਢਣਤਥਦਧਨਪਫਬਭਮਯਰਲਲ਼ਵਸ਼ਸਹ਼ਾਿੀੁੂੇੈੋੌ੍ੑਖ਼ਗ਼ਜ਼ੜਫ਼੦੧੨੩੪੫੬੭੮੯ੰੱੲੳੴੵ੶ઁંઃઅઆઇઈઉઊઋઌઍએઐઑઓઔકખગઘઙચછજઝઞટઠડઢણતથદધનપફબભમયરલળવશષસહ઺઼ઽાિીુૂૃૄૅેૈૉોૌ્ૐૠૡૢૣ૤૥૦૧૨૩૪૫૬૭૮૯"
+
+
+
 batch_max_length = 25
-test_folder_names = ["kaggle_train", "kaggle_val", "1", "2", "3", "4", "5", "6", "7", "IIIT" , "icdar"]  ###
+test_folder_names = ["kaggle_train", "kaggle_val", "1", "2", "3", "4", "5", "6", "7", "IIIT", "icdar"]  ###
 
 languages = ["HI", "ML" , "KN", "TA", "TE", "OR", "GUR", "GU","BN"] # note these language codes should match with
 # language
@@ -22,7 +25,7 @@ data_roots =['/media/shubham/One Touch/Indic_OCR/recognition_dataset/tamil', '/m
 
 validation_folder_names = ["MJ_valid", "ST_valid"]
 # validation_folder_names= [ "1","2","3", "4", "5", "6", "7" ]
-#validation_folder_names = ["kaggle_train", "kaggle_val", "1", "2", "3", "4", "5", "6", "7"]
+# validation_folder_names = ["kaggle_train", "kaggle_val", "1", "2", "3", "4", "5", "6", "7"]
 mj_folder_names = ['MJ_test', 'MJ_train']
 
 real_world_train_folders = ["icdar", "IIIT"]
@@ -49,7 +52,7 @@ for root in data_roots:
 	try:
 		if not fine_tune:
 			st = os.path.join(root, "training/ST")
-			mj =  os.path.join(root,"training/MJ/")
+			mj = os.path.join(root, "training/MJ/")
 			train_dataset_mj = [dict(type='LmdbDataset', root=mj + folder_name)
 			                    for folder_name in mj_folder_names]
 			
@@ -58,7 +61,7 @@ for root in data_roots:
 			train_datasets.append(train_dataset_mj)
 			train_datasets.append(train_dataset_st)
 			
-			valid_root =  os.path.join(root,'validation/')
+			valid_root = os.path.join(root, 'validation/')
 			valid_dataset = [dict(type='LmdbDataset', root=valid_root + folder_name, **test_dataset_params) for
 			                 folder_name in validation_folder_names]
 			
@@ -71,7 +74,7 @@ for root in data_roots:
 			test_datasets.extend(test_dataset)
 		
 		else:
-			train_root_real =  os.path.join(root,"evaluation/")
+			train_root_real = os.path.join(root, "evaluation/")
 			train_dataset_real = [dict(type='LmdbDataset', root=train_root_real + folder_name)
 			                      for folder_name in real_world_train_folders]
 			train_datasets.append(train_dataset_real)
@@ -89,7 +92,7 @@ for root in data_roots:
 # work directory
 root_workdir = 'workdir'
 # sample_per_gpu
-samples_per_gpu = 64
+samples_per_gpu = 16
 ###############################################################################
 # 1. inference
 size = (32, 128)
@@ -130,47 +133,8 @@ inference = dict(
 			type="GBody",
 			pipelines=[
 				dict(
-					type='RectificatorComponent',
-					from_layer='input',
-					to_layer='rect',
-					arch=dict(
-						type='TPS_STN',
-						F=fiducial_num,
-						input_size=size,
-						output_size=size,
-						stn=dict(
-							feature_extractor=dict(
-								encoder=dict(
-									backbone=dict(
-										type='GBackbone',
-										layers=[
-											dict(type='ConvModule', in_channels=1, out_channels=64,
-											     kernel_size=3, stride=1, padding=1, norm_cfg=norm_cfg),
-											dict(type='MaxPool2d', kernel_size=2, stride=2),
-											dict(type='ConvModule', in_channels=64, out_channels=128,
-											     kernel_size=3, stride=1, padding=1, norm_cfg=norm_cfg),
-											dict(type='MaxPool2d', kernel_size=2, stride=2),
-											dict(type='ConvModule', in_channels=128, out_channels=256,
-											     kernel_size=3, stride=1, padding=1, norm_cfg=norm_cfg),
-											dict(type='MaxPool2d', kernel_size=2, stride=2),
-											dict(type='ConvModule', in_channels=256, out_channels=hidden_dim,
-											     kernel_size=3, stride=1, padding=1, norm_cfg=norm_cfg),
-										],
-									),
-								),
-								collect=dict(type='CollectBlock', from_layer='c3')
-							),
-							pool=dict(type='AdaptiveAvgPool2d', output_size=1),
-							head=[
-								dict(type='FCModule', in_channels=hidden_dim, out_channels=256),
-								dict(type='FCModule', in_channels=256, out_channels=fiducial_num * 2, activation=None)
-							],
-						),
-					),
-				),
-				dict(
 					type='FeatureExtractorComponent',
-					from_layer='rect',
+					from_layer='input',
 					to_layer='fpn_feat',
 					arch=dict(
 						encoder=dict(
@@ -352,8 +316,8 @@ inference = dict(
 				pos_mask=generate_square_subsequent_mask,
 				vis_mask=diagonal_mask,
 				sem_mask=generate_square_subsequent_mask,
-				vis_mask_range=3,
-				sem_mask_range=7,
+				vis_mask_range=1,
+				sem_mask_range=200,
 				activation=dict(
 					type="Sigmoid"
 				)
@@ -383,7 +347,7 @@ inference = dict(
 			collect=dict(type='CollectBlock', from_layer='linear_layer')
 		),
 		need_text=True,
-		need_lang = True,
+		need_lang=True,
 		max_seq_len=batch_max_length + 1,
 		d_model=hidden_dim,
 		num_class=num_class,

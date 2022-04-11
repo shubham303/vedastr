@@ -385,11 +385,11 @@ class BasicBlock(nn.Module):
 		return out
 
 
-class ResNet(nn.Module):
+class ResNet45(nn.Module):
 	
 	def __init__(self, block, layers, strides, compress_layer=True):
 		self.inplanes = 32
-		super(ResNet, self).__init__()
+		super(ResNet45, self).__init__()
 		self.conv1 = nn.Conv2d(1, 32, kernel_size=3, stride=strides[0], padding=1,
 		                       bias=False)
 		self.bn1 = nn.BatchNorm2d(32)
@@ -434,7 +434,7 @@ class ResNet(nn.Module):
 		
 		return nn.Sequential(*layers)
 	
-	def forward(self, x, multiscale=False):
+	def forward(self, x):
 		out_features = []
 		x = self.conv1(x)
 		x = self.bn1(x)
@@ -469,5 +469,5 @@ class ResNet(nn.Module):
 
 
 def resnet45(strides, compress_layer):
-	model = ResNet(BasicBlock, [3, 4, 6, 6, 3], strides, compress_layer)
+	model = ResNet45(BasicBlock, [3, 4, 6, 6, 3], strides, compress_layer)
 	return model

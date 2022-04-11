@@ -13,6 +13,7 @@ from __future__ import division
 from __future__ import print_function
 
 import os
+import bisect
 import sys
 __dir__ = os.path.dirname(os.path.abspath(__file__))
 
@@ -140,7 +141,7 @@ class Cdisnet(nn.Module):
                                     b_input_char_k[:, i + 1] = idx
                                 score -= torch.log(val).item()
     
-                                import bisect
+                      
                                 bisect.insort(X, (score, b_outputs_k, b_input_char_k, indexes_k))
                                 X = X[:min(beam_size, len(X))]
                         sequences = X
