@@ -15,15 +15,15 @@ languages = ["HI", "ML", "KN", "TA", "TE", "OR", "GUR", "GU", "BN"]  # note thes
 # language
 # code returned by abfn module.
 
-data_roots = ['/media/shubham/One Touch/Indic_OCR/recognition_dataset/tamil',
-              '/media/shubham/One Touch/Indic_OCR/recognition_dataset/bengali',
-              '/media/shubham/One Touch/Indic_OCR/recognition_dataset/telugu',
-              '/media/shubham/One Touch/Indic_OCR/recognition_dataset/hindi',
-              '/media/shubham/One Touch/Indic_OCR/recognition_dataset/malayalam',
-              '/media/shubham/One Touch/Indic_OCR/recognition_dataset/gujarati',
-              '/media/shubham/One Touch/Indic_OCR/recognition_dataset/gurumukhi',
-              '/media/shubham/One Touch/Indic_OCR/recognition_dataset/kannada',
-              '/media/shubham/One Touch/Indic_OCR/recognition_dataset/oriya']
+data_roots = ['/nlsasfs/home/ai4bharat/shubhamr/shubham/recognition_dataset/tamil',
+              '/nlsasfs/home/ai4bharat/shubhamr/shubham/recognition_dataset/bengali',
+              '/nlsasfs/home/ai4bharat/shubhamr/shubham/recognition_dataset/telugu',
+              '/nlsasfs/home/ai4bharat/shubhamr/shubham/recognition_dataset/hindi',
+              '/nlsasfs/home/ai4bharat/shubhamr/shubham/recognition_dataset/malayalam',
+              '/nlsasfs/home/ai4bharat/shubhamr/shubham/recognition_dataset/gujarati',
+              '/nlsasfs/home/ai4bharat/shubhamr/shubham/recognition_dataset/gurumukhi',
+              '/nlsasfs/home/ai4bharat/shubhamr/shubham/recognition_dataset/kannada',
+              '/nlsasfs/home/ai4bharat/shubhamr/shubham/recognition_dataset/oriya']
 
 # data_root = '/home/ocr/datasets/recognition/hindi/'
 # data_root= '/nlsasfs/home/ai4bharat/shubhamr/shubham/recognition-dataset/hindi/'
