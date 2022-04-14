@@ -8,19 +8,18 @@ import cv2
 import numpy as np
 import torch
 import torchvision
-from PIL.Image import Image
 from albumentations import DualTransform, ImageOnlyTransform
 import random
-from straug.blur import GaussianBlur, DefocusBlur, MotionBlur, GlassBlur, ZoomBlur
+"""from straug.blur import GaussianBlur, DefocusBlur, MotionBlur, GlassBlur, ZoomBlur
 import straug
-from straug.camera import Contrast, Brightness, JpegCompression, Pixelate
+from straug.camera import Contrast, Brightness, JpegCompression, Pixelate"""
 from straug.geometry import Rotate, Perspective, Shrink, TranslateX, TranslateY
-from straug.noise import GaussianNoise, ShotNoise, ImpulseNoise, SpeckleNoise
+"""from straug.noise import GaussianNoise, ShotNoise, ImpulseNoise, SpeckleNoise
 from straug.pattern import VGrid, HGrid, Grid, RectGrid, EllipseGrid
 from straug.process import Posterize, Solarize, Invert, Equalize, AutoContrast, Sharpness, Color
 from straug.warp import Curve, Distort, Stretch
 from straug.weather import Fog, Snow, Frost, Rain, Shadow
-from torchvision.transforms import transforms
+from torchvision.transforms import transforms"""
 
 from .registry import TRANSFORMS
 
@@ -677,7 +676,7 @@ class TIA(DualTransform):
 		return src_pts, dst_pts, img_w, img_h
 
 
-@TRANSFORMS.register_module
+"""@TRANSFORMS.register_module
 class StrAug(ImageOnlyTransform):
 	
 	def __init__(self, exclude_list=None,seed=0, prob = 0.3, **kwargs):
@@ -724,7 +723,7 @@ class StrAug(ImageOnlyTransform):
 			print("error occurred during straug transform")
 			raise Exception
 		return kwargs
-
+"""
 @TRANSFORMS.register_module
 class RandomPad(ImageOnlyTransform):
 	
