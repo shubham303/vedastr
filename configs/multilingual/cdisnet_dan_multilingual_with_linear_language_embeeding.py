@@ -113,7 +113,7 @@ for root in data_roots:
 
 
 # work directory
-root_workdir = '/media/shubham/One Touch/Indic_OCR/models/'
+root_workdir = 'workdir'
 # sample_per_gpu
 samples_per_gpu = 64
 ###############################################################################
