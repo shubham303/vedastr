@@ -11,7 +11,7 @@ test_character = "ஂஃஅஆஇஈஉஊஎஏஐஒஓஔக஗ஙசஜஞ�
 
 
 batch_max_length = 25
-test_folder_names = ["kaggle_train", "kaggle_val", "1", "2", "3", "4", "5", "6", "7", "IIIT", "icdar"]  ###
+test_folder_names = ["kaggle_train", "kaggle_val", "icdar"]  ###
 
 languages = ["HI", "ML" , "KN", "TA", "TE", "OR", "GUR", "GU","BN"] # note these language codes should match with
 # language
@@ -23,16 +23,16 @@ data_roots =['/media/shubham/One Touch/Indic_OCR/recognition_dataset/tamil', '/m
 # data_root = '/home/ocr/datasets/recognition/hindi/'
 # data_root= '/nlsasfs/home/ai4bharat/shubhamr/shubham/recognition-dataset/hindi/'
 
-validation_folder_names = ["MJ_valid", "ST_valid"]
-# validation_folder_names= [ "1","2","3", "4", "5", "6", "7" ]
+#validation_folder_names = ["MJ_valid", "ST_valid"]
+validation_folder_names= [ "IIIT" ]
 # validation_folder_names = ["kaggle_train", "kaggle_val", "1", "2", "3", "4", "5", "6", "7"]
 mj_folder_names = ['MJ_test', 'MJ_train']
 
-real_world_train_folders = ["icdar", "IIIT"]
+real_world_train_folders =["kaggle_train", "kaggle_val", "1", "2", "3", "4", "5", "6", "7", "icdar"]
 
 ##############################################################################################
 # dataset related configuration.
-fine_tune = False  # set to true to finetune model on real dataset.
+fine_tune = True  # set to true to finetune model on real dataset.
 train_datasets = []
 valid_datasets = []
 test_datasets = []
@@ -54,31 +54,48 @@ for root in data_roots:
 			st = os.path.join(root, "training/ST")
 			mj = os.path.join(root, "training/MJ/")
 			
-			train_dataset_mj = [dict(type='LmdbDataset', root=mj + folder_name)
-			                    for folder_name in mj_folder_names]
+			train_dataset_mj = [mj + folder_name for folder_name in mj_folder_names]
+			train_dataset_mj = list(filter(lambda x: os.path.exists(x), train_dataset_mj))
+			train_dataset_mj = [dict(type='LmdbDataset', root=folder_name)
+			                    for folder_name in train_dataset_mj]
 			
-			train_dataset_st = [dict(type='LmdbDataset', root=st)]
+			train_dataset_st = []
+			if os.path.exists(st):
+				train_dataset_st = [dict(type='LmdbDataset', root=st)]
 			
 			train_datasets.append(train_dataset_mj)
 			train_datasets.append(train_dataset_st)
 			
-			valid_root = os.path.join(root, 'validation/')
-			valid_dataset = [dict(type='LmdbDataset', root=valid_root + folder_name, **test_dataset_params) for
-			                 folder_name in validation_folder_names]
-			
-			valid_datasets.append(valid_dataset)
-			
-			test_root = os.path.join(root, "evaluation/")
-			
-			test_dataset = [dict(type='LmdbDataset', root=test_root + f_name, **test_dataset_params) for f_name in
-			                test_folder_names]
-			test_datasets.extend(test_dataset)
-		
 		else:
 			train_root_real = os.path.join(root, "evaluation/")
-			train_dataset_real = [dict(type='LmdbDataset', root=train_root_real + folder_name)
-			                      for folder_name in real_world_train_folders]
-			train_datasets.append(train_dataset_real)
+			
+			train_dataset_real = [train_root_real + folder_name for folder_name in real_world_train_folders]
+			train_dataset_real = list(filter(lambda x: os.path.exists(x), train_dataset_real))
+			train_dataset_real = [dict(type='LmdbDataset', root=folder_name)
+			                      for folder_name in train_dataset_real]
+			
+			if len(train_dataset_real) > 0:
+				train_datasets.append(train_dataset_real)
+		
+		valid_root = os.path.join(root, 'evaluation/')
+		
+		valid_dataset = [valid_root + folder_name for folder_name in validation_folder_names]
+		valid_dataset = list(filter(lambda x: os.path.exists(x), valid_dataset))
+		valid_dataset = [dict(type='LmdbDataset', root=folder_name, **test_dataset_params) for
+		                 folder_name in valid_dataset]
+		
+		if len(valid_dataset) > 0:
+			valid_datasets.append(valid_dataset)
+		
+		test_root = os.path.join(root, "evaluation/")
+		
+		test_dataset = [test_root + folder_name for folder_name in test_folder_names]
+		test_dataset = list(filter(lambda x: os.path.exists(x), test_dataset))
+		test_dataset = [dict(type='LmdbDataset', root=f_name, **test_dataset_params) for f_name in
+		                test_dataset]
+		
+		test_datasets.extend(test_dataset)
+	
 	
 	except Exception:
 		""" Note : ("exception occurred during dataset creation. For multilingual model this exception occurs because
@@ -91,9 +108,9 @@ for root in data_roots:
 
 
 # work directory
-root_workdir = 'workdir'
+root_workdir = '/media/shubham/One Touch/Indic_OCR/models/'
 # sample_per_gpu
-samples_per_gpu = 16
+samples_per_gpu = 64
 ###############################################################################
 # 1. inference
 size = (32, 128)
@@ -352,7 +369,7 @@ inference = dict(
 		max_seq_len=batch_max_length + 1,
 		d_model=hidden_dim,
 		num_class=num_class,
-		share_weight=True
+		share_weight=False
 	),
 	postprocess=dict(
 		sensitive=test_sensitive,
@@ -476,9 +493,9 @@ train = dict(
 	                  ),
 	max_epochs=max_epochs,
 	log_interval=50,
-	trainval_ratio=5000,
-	max_iterations_val=300,  # 10 percent of train_val ratio.
-	snapshot_interval=10000,
+	trainval_ratio=500,
+	max_iterations_val=100,  # 10 percent of train_val ratio.
+	snapshot_interval=2000,
 	save_best=True,
-	resume=None
+	resume=dict(checkpoint = "/media/shubham/One Touch/Indic_OCR/models/Cdisnet_dan_multilingual_all_1024/best_norm.pth")
 )

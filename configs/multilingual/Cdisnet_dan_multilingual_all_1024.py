@@ -53,7 +53,6 @@ for root in data_roots:
 		if not fine_tune:
 			st = os.path.join(root, "training/ST")
 			mj = os.path.join(root, "training/MJ/")
-			
 			train_dataset_mj = [dict(type='LmdbDataset', root=mj + folder_name)
 			                    for folder_name in mj_folder_names]
 			
@@ -91,9 +90,9 @@ for root in data_roots:
 
 
 # work directory
-root_workdir = 'workdir'
+root_workdir = '/media/shubham/One Touch/Indic_OCR/models/'
 # sample_per_gpu
-samples_per_gpu = 16
+samples_per_gpu = 64
 ###############################################################################
 # 1. inference
 size = (32, 128)
@@ -133,6 +132,45 @@ inference = dict(
 		vis_module=dict(
 			type="GBody",
 			pipelines=[
+				dict(
+					type='RectificatorComponent',
+					from_layer='input',
+					to_layer='rect',
+					arch=dict(
+						type='TPS_STN',
+						F=fiducial_num,
+						input_size=size,
+						output_size=size,
+						stn=dict(
+							feature_extractor=dict(
+								encoder=dict(
+									backbone=dict(
+										type='GBackbone',
+										layers=[
+											dict(type='ConvModule', in_channels=1, out_channels=64,
+											     kernel_size=3, stride=1, padding=1, norm_cfg=norm_cfg),
+											dict(type='MaxPool2d', kernel_size=2, stride=2),
+											dict(type='ConvModule', in_channels=64, out_channels=128,
+											     kernel_size=3, stride=1, padding=1, norm_cfg=norm_cfg),
+											dict(type='MaxPool2d', kernel_size=2, stride=2),
+											dict(type='ConvModule', in_channels=128, out_channels=256,
+											     kernel_size=3, stride=1, padding=1, norm_cfg=norm_cfg),
+											dict(type='MaxPool2d', kernel_size=2, stride=2),
+											dict(type='ConvModule', in_channels=256, out_channels=hidden_dim,
+											     kernel_size=3, stride=1, padding=1, norm_cfg=norm_cfg),
+										],
+									),
+								),
+								collect=dict(type='CollectBlock', from_layer='c3')
+							),
+							pool=dict(type='AdaptiveAvgPool2d', output_size=1),
+							head=[
+								dict(type='FCModule', in_channels=hidden_dim, out_channels=256),
+								dict(type='FCModule', in_channels=256, out_channels=fiducial_num * 2, activation=None)
+							],
+						),
+					),
+				),
 				dict(
 					type='FeatureExtractorComponent',
 					from_layer='input',
@@ -352,7 +390,7 @@ inference = dict(
 		max_seq_len=batch_max_length + 1,
 		d_model=hidden_dim,
 		num_class=num_class,
-		share_weight=True
+		share_weight=False
 	),
 	postprocess=dict(
 		sensitive=test_sensitive,
@@ -480,5 +518,5 @@ train = dict(
 	max_iterations_val=300,  # 10 percent of train_val ratio.
 	snapshot_interval=10000,
 	save_best=True,
-	resume=None
+	resume=dict(checkpoint = "/home/shubham/Documents/MTP/text-recognition-models/vedastr/tools/workdir/Cdisnet_dan_multilingual_all_1024/best_acc.pth")
 )

@@ -19,6 +19,7 @@ __dir__ = os.path.dirname(os.path.abspath(__file__))
 
 
 from vedastr.models.bodies import build_body, build_sequence_decoder
+from vedastr.models.bodies.sequences.transformer.unit.feedforward import build_feedforward
 from .registry import MODELS
 
 
@@ -36,7 +37,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 @MODELS.register_module
 class Cdisnet(nn.Module):
     def __init__(self, vis_module, sem_module, pos_module, mdcdp_layers,share_weight, d_model,num_class,
-                 max_seq_len,  need_text,need_lang , language_embedding):
+                 max_seq_len,  need_text,need_lang , language_embedding=None , linear_layer=None):
         
         super(Cdisnet, self).__init__()
         self.need_text=need_text
@@ -54,8 +55,13 @@ class Cdisnet(nn.Module):
         
         self.linear = nn.Linear(d_model,num_class)
         self.max_seq_len = max_seq_len
-        self.language_embedding = build_body(language_embedding)   # language_embedding translates language id to
+        
+        if language_embedding:
+            self.language_embedding = build_body(language_embedding)   # language_embedding translates language id to
         # feature vector
+        
+        if linear_layer:
+            self.linear_layer = build_feedforward(linear_layer)
     
             
     def forward(self, inputs , beam_size =0):
@@ -79,11 +85,12 @@ class Cdisnet(nn.Module):
        
         if language is not None:                         # language embedding set None means model is single languge
         # model
-            
             language_embedding = self.language_embedding(language)
             language_embedding = language_embedding.unsqueeze(1)
             vis_feature[:] = vis_feature+language_embedding              # add language embedding to each vis vector
         
+        if self.linear_layer :
+            vis_feature = self.linear_layer(vis_feature)
 
         # classifier
         if self.training:

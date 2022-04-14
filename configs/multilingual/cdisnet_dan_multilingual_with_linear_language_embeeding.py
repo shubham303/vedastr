@@ -4,31 +4,36 @@ import os.path
 from vedastr.attention_masks.masks import generate_square_subsequent_mask, src_mask_attend_only_neighbour_tokens, \
 	diagonal_mask
 
-character ="ஂஃஅஆஇஈஉஊஎஏஐஒஓஔக஗ஙசஜஞடணதநனப஬மயரறலளழவஶஷஸஹ஻஼஽ாிீுூெேைொோௌ்௏ௐௗ௘௛௞௦௧௨௩௪௫௬௭௮௯௰௱௲௳௴௵௶௷௸௹௺ഀഁംഃഄഅആഇഈഉഊഋഌഎഏഐഒഓഔകഖഗഘങചഛജഝഞടഠഡഢണതഥദധനഩപഫബഭമയരറലളഴവശഷസഹഺ഻഼ഽാിീുൂൃൄെേൈൊോൌ്ൎ൏ൔൕൖൗ൘൙൚൛൜൝൞ൟൠൡൢൣ൦൧൨൩൪൫൬൭൮൯൰൱൲൳൴൵൶൷൸൹ൺൻർൽൾൿঀঁংঃঅআইঈউঊঋঌএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরল঳঴঵শষসহ়ঽািীুূৃৄেৈোৌ্ৎৗড়ঢ়য়ৠৡৢৣ০১২৩৪৫৬৭৮৯ৰৱ৲৳৴৵৶৷৸৹৺৻ৼ৽৾ఁంఃఄఅఆఇఈఉఊఋఌఎఏఐఒఓఔకఖగఘఙచఛజఝఞటఠడఢణతథదధనపఫబభమయరఱలళఴవశషసహఽాిీుూృౄెేైొోౌ్ౕౖౘౙౚౠౡౢౣ౦౧౨౩౪౫౬౭౮౯౱౷౸౹౺౻౼౽౾౿ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ०१२३४५६७८९ॲಀಁಂಃ಄ಅಆಇಈಉಊಋಌಎಏಐಒಓಔಕಖಗಘಙಚಛಜಝಞಟಠಡಢಣತಥದಧನಪಫಬಭಮಯರಱಲಳವಶಷಸಹ಼ಽಾಿೀುೂೃೄ೅ೆೇೈ೉ೊೋೌ್ೕೖೞೠೡೢೣ೦೧೨೩೪೫೬೭೮೯ଁଂଃଅଆଇଈଉଊଋଌଏଐଓଔକଖଗଘଙଚଛଜଝଞଟଠଡଢଣତଥଦଧନପଫବଭମଯର଱ଲଳଵଶଷସହ଼ଽାିୀୁୂୃୄେୈୋୌ୍୐ୖୗଡ଼ଢ଼ୟୠୡୢୣ୤୦୧୨୩୪୫୬୭୮୯୰ୱ୲୳୴୵୶୷ਁਂਃਅਆਇਈਉਊਏਐਓਔਕਖਗਘਙਚਛਜਝਞਟਠਡਢਣਤਥਦਧਨਪਫਬਭਮਯਰਲਲ਼ਵਸ਼ਸਹ਼ਾਿੀੁੂੇੈੋੌ੍ੑਖ਼ਗ਼ਜ਼ੜਫ਼੦੧੨੩੪੫੬੭੮੯ੰੱੲੳੴੵ੶ઁંઃઅઆઇઈઉઊઋઌઍએઐઑઓઔકખગઘઙચછજઝઞટઠડઢણતથદધનપફબભમયરલળવશષસહ઺઼ઽાિીુૂૃૄૅેૈૉોૌ્ૐૠૡૢૣ૤૥૦૧૨૩૪૫૬૭૮૯"
+character = "ஂஃஅஆஇஈஉஊஎஏஐஒஓஔக஗ஙசஜஞடணதநனப஬மயரறலளழவஶஷஸஹ஻஼஽ாிீுூெேைொோௌ்௏ௐௗ௘௛௞௦௧௨௩௪௫௬௭௮௯௰௱௲௳௴௵௶௷௸௹௺ഀഁംഃഄഅആഇഈഉഊഋഌഎഏഐഒഓഔകഖഗഘങചഛജഝഞടഠഡഢണതഥദധനഩപഫബഭമയരറലളഴവശഷസഹഺ഻഼ഽാിീുൂൃൄെേൈൊോൌ്ൎ൏ൔൕൖൗ൘൙൚൛൜൝൞ൟൠൡൢൣ൦൧൨൩൪൫൬൭൮൯൰൱൲൳൴൵൶൷൸൹ൺൻർൽൾൿঀঁংঃঅআইঈউঊঋঌএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরল঳঴঵শষসহ়ঽািীুূৃৄেৈোৌ্ৎৗড়ঢ়য়ৠৡৢৣ০১২৩৪৫৬৭৮৯ৰৱ৲৳৴৵৶৷৸৹৺৻ৼ৽৾ఁంఃఄఅఆఇఈఉఊఋఌఎఏఐఒఓఔకఖగఘఙచఛజఝఞటఠడఢణతథదధనపఫబభమయరఱలళఴవశషసహఽాిీుూృౄెేైొోౌ్ౕౖౘౙౚౠౡౢౣ౦౧౨౩౪౫౬౭౮౯౱౷౸౹౺౻౼౽౾౿ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ०१२३४५६७८९ॲಀಁಂಃ಄ಅಆಇಈಉಊಋಌಎಏಐಒಓಔಕಖಗಘಙಚಛಜಝಞಟಠಡಢಣತಥದಧನಪಫಬಭಮಯರಱಲಳವಶಷಸಹ಼ಽಾಿೀುೂೃೄ೅ೆೇೈ೉ೊೋೌ್ೕೖೞೠೡೢೣ೦೧೨೩೪೫೬೭೮೯ଁଂଃଅଆଇଈଉଊଋଌଏଐଓଔକଖଗଘଙଚଛଜଝଞଟଠଡଢଣତଥଦଧନପଫବଭମଯର଱ଲଳଵଶଷସହ଼ଽାିୀୁୂୃୄେୈୋୌ୍୐ୖୗଡ଼ଢ଼ୟୠୡୢୣ୤୦୧୨୩୪୫୬୭୮୯୰ୱ୲୳୴୵୶୷ਁਂਃਅਆਇਈਉਊਏਐਓਔਕਖਗਘਙਚਛਜਝਞਟਠਡਢਣਤਥਦਧਨਪਫਬਭਮਯਰਲਲ਼ਵਸ਼ਸਹ਼ਾਿੀੁੂੇੈੋੌ੍ੑਖ਼ਗ਼ਜ਼ੜਫ਼੦੧੨੩੪੫੬੭੮੯ੰੱੲੳੴੵ੶ઁંઃઅઆઇઈઉઊઋઌઍએઐઑઓઔકખગઘઙચછજઝઞટઠડઢણતથદધનપફબભમયરલળવશષસહ઺઼ઽાિીુૂૃૄૅેૈૉોૌ્ૐૠૡૢૣ૤૥૦૧૨૩૪૫૬૭૮૯"
 test_sensitive = False
 test_character = "ஂஃஅஆஇஈஉஊஎஏஐஒஓஔக஗ஙசஜஞடணதநனப஬மயரறலளழவஶஷஸஹ஻஼஽ாிீுூெேைொோௌ்௏ௐௗ௘௛௞௦௧௨௩௪௫௬௭௮௯௰௱௲௳௴௵௶௷௸௹௺ഀഁംഃഄഅആഇഈഉഊഋഌഎഏഐഒഓഔകഖഗഘങചഛജഝഞടഠഡഢണതഥദധനഩപഫബഭമയരറലളഴവശഷസഹഺ഻഼ഽാിീുൂൃൄെേൈൊോൌ്ൎ൏ൔൕൖൗ൘൙൚൛൜൝൞ൟൠൡൢൣ൦൧൨൩൪൫൬൭൮൯൰൱൲൳൴൵൶൷൸൹ൺൻർൽൾൿঀঁংঃঅআইঈউঊঋঌএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরল঳঴঵শষসহ়ঽািীুূৃৄেৈোৌ্ৎৗড়ঢ়য়ৠৡৢৣ০১২৩৪৫৬৭৮৯ৰৱ৲৳৴৵৶৷৸৹৺৻ৼ৽৾ఁంఃఄఅఆఇఈఉఊఋఌఎఏఐఒఓఔకఖగఘఙచఛజఝఞటఠడఢణతథదధనపఫబభమయరఱలళఴవశషసహఽాిీుూృౄెేైొోౌ్ౕౖౘౙౚౠౡౢౣ౦౧౨౩౪౫౬౭౮౯౱౷౸౹౺౻౼౽౾౿ऀँंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्ॎॏॐ॒॑॓॔ॕॖॗक़ख़ग़ज़ड़ढ़फ़य़ॠॡॢॣ०१२३४५६७८९ॲಀಁಂಃ಄ಅಆಇಈಉಊಋಌಎಏಐಒಓಔಕಖಗಘಙಚಛಜಝಞಟಠಡಢಣತಥದಧನಪಫಬಭಮಯರಱಲಳವಶಷಸಹ಼ಽಾಿೀುೂೃೄ೅ೆೇೈ೉ೊೋೌ್ೕೖೞೠೡೢೣ೦೧೨೩೪೫೬೭೮೯ଁଂଃଅଆଇଈଉଊଋଌଏଐଓଔକଖଗଘଙଚଛଜଝଞଟଠଡଢଣତଥଦଧନପଫବଭମଯର଱ଲଳଵଶଷସହ଼ଽାିୀୁୂୃୄେୈୋୌ୍୐ୖୗଡ଼ଢ଼ୟୠୡୢୣ୤୦୧୨୩୪୫୬୭୮୯୰ୱ୲୳୴୵୶୷ਁਂਃਅਆਇਈਉਊਏਐਓਔਕਖਗਘਙਚਛਜਝਞਟਠਡਢਣਤਥਦਧਨਪਫਬਭਮਯਰਲਲ਼ਵਸ਼ਸਹ਼ਾਿੀੁੂੇੈੋੌ੍ੑਖ਼ਗ਼ਜ਼ੜਫ਼੦੧੨੩੪੫੬੭੮੯ੰੱੲੳੴੵ੶ઁંઃઅઆઇઈઉઊઋઌઍએઐઑઓઔકખગઘઙચછજઝઞટઠડઢણતથદધનપફબભમયરલળવશષસહ઺઼ઽાિીુૂૃૄૅેૈૉોૌ્ૐૠૡૢૣ૤૥૦૧૨૩૪૫૬૭૮૯"
 
-
-
 batch_max_length = 25
-test_folder_names = ["kaggle_train", "kaggle_val", "1", "2", "3", "4", "5", "6", "7", "IIIT", "icdar"]  ###
+test_folder_names = ["kaggle_train", "kaggle_val", "icdar"]  ###
 
-languages = ["HI", "ML" , "KN", "TA", "TE", "OR", "GUR", "GU","BN"] # note these language codes should match with
+languages = ["HI", "ML", "KN", "TA", "TE", "OR", "GUR", "GU", "BN"]  # note these language codes should match with
 # language
 # code returned by abfn module.
 
-data_roots =['/media/shubham/One Touch/Indic_OCR/recognition_dataset/tamil', '/media/shubham/One Touch/Indic_OCR/recognition_dataset/bengali', '/media/shubham/One Touch/Indic_OCR/recognition_dataset/telugu',  '/media/shubham/One Touch/Indic_OCR/recognition_dataset/hindi', '/media/shubham/One Touch/Indic_OCR/recognition_dataset/malayalam', '/media/shubham/One Touch/Indic_OCR/recognition_dataset/gujarati', '/media/shubham/One Touch/Indic_OCR/recognition_dataset/gurumukhi', '/media/shubham/One Touch/Indic_OCR/recognition_dataset/kannada', '/media/shubham/One Touch/Indic_OCR/recognition_dataset/oriya']
-
+data_roots = ['/media/shubham/One Touch/Indic_OCR/recognition_dataset/tamil',
+              '/media/shubham/One Touch/Indic_OCR/recognition_dataset/bengali',
+              '/media/shubham/One Touch/Indic_OCR/recognition_dataset/telugu',
+              '/media/shubham/One Touch/Indic_OCR/recognition_dataset/hindi',
+              '/media/shubham/One Touch/Indic_OCR/recognition_dataset/malayalam',
+              '/media/shubham/One Touch/Indic_OCR/recognition_dataset/gujarati',
+              '/media/shubham/One Touch/Indic_OCR/recognition_dataset/gurumukhi',
+              '/media/shubham/One Touch/Indic_OCR/recognition_dataset/kannada',
+              '/media/shubham/One Touch/Indic_OCR/recognition_dataset/oriya']
 
 # data_root = '/home/ocr/datasets/recognition/hindi/'
 # data_root= '/nlsasfs/home/ai4bharat/shubhamr/shubham/recognition-dataset/hindi/'
 
 validation_folder_names = ["MJ_valid", "ST_valid"]
-# validation_folder_names= [ "1","2","3", "4", "5", "6", "7" ]
+#validation_folder_names = ["IIIT"]
 # validation_folder_names = ["kaggle_train", "kaggle_val", "1", "2", "3", "4", "5", "6", "7"]
-mj_folder_names = ['MJ_test', 'MJ_train']
+mj_folder_names = ['MJ_train']
 
-real_world_train_folders = ["icdar", "IIIT"]
+real_world_train_folders = ["kaggle_train", "kaggle_val", "1", "2", "3", "4", "5", "6", "7", "icdar"]
 
 ##############################################################################################
 # dataset related configuration.
@@ -54,31 +59,48 @@ for root in data_roots:
 			st = os.path.join(root, "training/ST")
 			mj = os.path.join(root, "training/MJ/")
 			
-			train_dataset_mj = [dict(type='LmdbDataset', root=mj + folder_name)
-			                    for folder_name in mj_folder_names]
+			train_dataset_mj = [mj + folder_name for folder_name in mj_folder_names]
+			train_dataset_mj = list(filter(lambda x: os.path.exists(x), train_dataset_mj))
+			train_dataset_mj = [dict(type='LmdbDataset', root=folder_name)
+			                    for folder_name in train_dataset_mj]
 			
-			train_dataset_st = [dict(type='LmdbDataset', root=st)]
+			train_dataset_st = []
+			if os.path.exists(st):
+				train_dataset_st = [dict(type='LmdbDataset', root=st)]
 			
 			train_datasets.append(train_dataset_mj)
 			train_datasets.append(train_dataset_st)
-			
-			valid_root = os.path.join(root, 'validation/')
-			valid_dataset = [dict(type='LmdbDataset', root=valid_root + folder_name, **test_dataset_params) for
-			                 folder_name in validation_folder_names]
-			
-			valid_datasets.append(valid_dataset)
-			
-			test_root = os.path.join(root, "evaluation/")
-			
-			test_dataset = [dict(type='LmdbDataset', root=test_root + f_name, **test_dataset_params) for f_name in
-			                test_folder_names]
-			test_datasets.extend(test_dataset)
 		
 		else:
 			train_root_real = os.path.join(root, "evaluation/")
-			train_dataset_real = [dict(type='LmdbDataset', root=train_root_real + folder_name)
-			                      for folder_name in real_world_train_folders]
-			train_datasets.append(train_dataset_real)
+			
+			train_dataset_real = [train_root_real + folder_name for folder_name in real_world_train_folders]
+			train_dataset_real = list(filter(lambda x: os.path.exists(x), train_dataset_real))
+			train_dataset_real = [dict(type='LmdbDataset', root=folder_name)
+			                      for folder_name in train_dataset_real]
+			
+			if len(train_dataset_real) > 0:
+				train_datasets.append(train_dataset_real)
+		
+		valid_root = os.path.join(root, 'validation/')
+		
+		valid_dataset = [valid_root + folder_name for folder_name in validation_folder_names]
+		valid_dataset = list(filter(lambda x: os.path.exists(x), valid_dataset))
+		valid_dataset = [dict(type='LmdbDataset', root=folder_name, **test_dataset_params) for
+		                 folder_name in valid_dataset]
+		
+		if len(valid_dataset) > 0:
+			valid_datasets.append(valid_dataset)
+		
+		test_root = os.path.join(root, "evaluation/")
+		
+		test_dataset = [test_root + folder_name for folder_name in test_folder_names]
+		test_dataset = list(filter(lambda x: os.path.exists(x), test_dataset))
+		test_dataset = [dict(type='LmdbDataset', root=f_name, **test_dataset_params) for f_name in
+		                test_dataset]
+		
+		test_datasets.extend(test_dataset)
+	
 	
 	except Exception:
 		""" Note : ("exception occurred during dataset creation. For multilingual model this exception occurs because
@@ -91,9 +113,9 @@ for root in data_roots:
 
 
 # work directory
-root_workdir = 'workdir'
+root_workdir = '/media/shubham/One Touch/Indic_OCR/models/'
 # sample_per_gpu
-samples_per_gpu = 16
+samples_per_gpu = 64
 ###############################################################################
 # 1. inference
 size = (32, 128)
@@ -309,7 +331,7 @@ inference = dict(
 						),
 						feedforward_norm=layer_norm_cbi,
 					),
-					num_layers=3,
+					num_layers=5,
 					position_encoder=None,
 					embedding=None
 				),
@@ -317,13 +339,13 @@ inference = dict(
 				pos_mask=generate_square_subsequent_mask,
 				vis_mask=diagonal_mask,
 				sem_mask=generate_square_subsequent_mask,
-				vis_mask_range=1,
-				sem_mask_range=200,
+				vis_mask_range=2,
+				sem_mask_range=7,
 				activation=dict(
 					type="Sigmoid"
 				)
 			)
-			for i in range(0, 3)],
+			for i in range(0, 5)],
 		language_embedding=dict(
 			type="GBody",
 			pipelines=[
@@ -347,12 +369,23 @@ inference = dict(
 			],
 			collect=dict(type='CollectBlock', from_layer='linear_layer')
 		),
+		linear_layer =dict(
+			type='Feedforward',
+			layers=[
+				dict(type='FCModule', in_channels=hidden_dim_cbi, out_channels=hidden_dim_cbi * 2,
+				     bias=True,
+				     activation='relu', dropout=dropout),
+				dict(type='FCModule', in_channels=hidden_dim_cbi * 2, out_channels=hidden_dim_cbi,
+				     bias=True,
+				     activation=None, dropout=dropout),
+			],
+		),
 		need_text=True,
 		need_lang=True,
 		max_seq_len=batch_max_length + 1,
 		d_model=hidden_dim,
 		num_class=num_class,
-		share_weight=True
+		share_weight=False
 	),
 	postprocess=dict(
 		sensitive=test_sensitive,
@@ -477,7 +510,7 @@ train = dict(
 	max_epochs=max_epochs,
 	log_interval=50,
 	trainval_ratio=5000,
-	max_iterations_val=300,  # 10 percent of train_val ratio.
+	max_iterations_val=500,  # 10 percent of train_val ratio.
 	snapshot_interval=10000,
 	save_best=True,
 	resume=None
