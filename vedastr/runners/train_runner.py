@@ -123,13 +123,13 @@ class TrainRunner(InferenceRunner):
         self.model.train()
 
         self.optimizer.zero_grad()
-        label_input, label_len, label_target , language_id = self.converter.train_encode(label)  # noqa 501
+        label_input, label_len, label_target , lang_id = self.converter.train_encode(label)  # noqa 501
         if self.use_gpu:
             img = img.cuda()
             label_input = label_input.cuda()
             label_target = label_target
             label_len = label_len
-            lang_id = language_id.cuda()
+            lang_id = lang_id.cuda()
 
         input = (img,)
         if self.need_text:
